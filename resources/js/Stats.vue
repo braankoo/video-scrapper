@@ -50,7 +50,7 @@
                 </template>
             </template>
             <template #row-details="data">
-                <b-table :api-url="`/api/stats/episode?name=${data.item.episode}`"
+                <b-table :api-url="`/api/stats/episode?name=${encodeURIComponent(data.item.episode)}`"
                          id="stats"
                          :busy.sync="isBusy"
                          :items="getVideoStats"
