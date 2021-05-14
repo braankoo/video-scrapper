@@ -60,7 +60,43 @@
                          :bordered="true"
                          :outlined="true"
                          :filter="filters"
-                />
+                >
+                    <template #cell()="row" :tdAttr='{style:"min-width: 90px;"}'>
+
+                        <template v-if="row.field.key !== 'videos'">
+                            <b-input-group>
+                                <b-input :value="row.value"
+                                         type="number"
+                                         @keyup.enter="update($event.target.value, row.item.videos, row.field.key, $event.target.nextElementSibling.firstChild)"/>
+                                <b-input-group-append>
+                                    <b-button variant="outline-success"
+                                              @click.self="update($event.target.parentElement.previousElementSibling.value, row.item.videos, row.field.key,$event.target)">
+                                        &#10003;
+                                    </b-button>
+                                </b-input-group-append>
+                            </b-input-group>
+                        </template>
+                        <template v-else>
+                            <p><a :href="row.item.videos" target="_blank">{{ row.item.videos }}</a></p>
+                            <b-row>
+                                <b-col>
+                                    <b-btn-group
+                                        :class="{ 'w-100': errors[row.item.videos] === 'true', 'w-50 pull-right':errors[row.item.videos] === 'false'}">
+                                        <b-button v-if="errors[row.item.videos] === 'true'" variant="danger" disabled>
+                                            Have
+                                            Errors!
+                                        </b-button>
+                                        <b-button @click.self="fetch(row.item.videos)" variant="success"
+                                                  class="pull-right btn-sm">
+                                            Fetch data
+                                        </b-button>
+                                    </b-btn-group>
+                                </b-col>
+                            </b-row>
+
+                        </template>
+                    </template>
+                </b-table>
             </template>
         </b-table>
         <b-pagination
@@ -158,6 +194,7 @@ export default {
                     }
                     tableData.push(data);
                 }
+                this.ids = response.data.data.ids;
                 return tableData;
 
             } catch (error) {
@@ -222,12 +259,30 @@ export default {
 <style>
 
 table {
-    font-size: 12px !important;
+    font-size: 10px !important;
+
+}
+
+.table p {
+    line-height: 1 !important;
+    margin-bottom: 0;
 }
 
 .table td {
     padding: 5px !important;
     max-width: 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+}
+
+.table th, .table td {
+    padding: 0 !important;
+}
+
+table input[type="number"] {
+    background: transparent;
+    border: 0;
+    font-size: 12px!important;
 }
 
 td button {
@@ -235,9 +290,7 @@ td button {
     text-align: center;
     padding: 0 3px 0 3px !important;
     margin: 0 !important;
+    font-size: 12px;
 }
 
-td input {
-    padding: 5px;
-}
 </style>
