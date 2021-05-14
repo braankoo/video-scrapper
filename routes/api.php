@@ -33,6 +33,8 @@ Route::delete('/video/{video}', [ App\Http\Controllers\VideoController::class, '
 
 
 Route::get('/stats', [ \App\Http\Controllers\StatsController::class, 'index' ]);
+Route::get('/stats/episode', [ \App\Http\Controllers\StatsController::class, 'episode' ]);
+
 Route::post('/stats', [ \App\Http\Controllers\StatsController::class, 'update' ]);
 Route::get('/stats/csv', [ \App\Http\Controllers\StatsController::class, 'csv' ]);
 

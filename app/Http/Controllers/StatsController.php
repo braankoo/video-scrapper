@@ -40,7 +40,125 @@ class StatsController extends Controller {
         $dates = (array_values(array_unique($dates)));
 
 
-        $pagination = Video::with([ 'stats' => function ($q) use ($request, $format) {
+        $pagination = Episode::with([ 'stats' => function ($q) use ($request, $format) {
+            $q->selectRaw(DB::raw("episode_id, sum(views) as views, DATE_FORMAT(stats.created_at,'{$format}') as date"));
+
+            if (!empty($filters->date->start_date))
+            {
+                $q->whereDate('stats.created_at', '>=', $filters->date->start_date);
+            }
+            if (!empty($filters->date->end_date))
+            {
+                $q->whereDate('stats.created_at', '<=', $filters->date->end_date);
+            }
+
+            $q->groupBy([ 'episode_id', DB::raw("DATE_FORMAT(stats.created_at,'$format')") ]);
+        } ]);
+
+        if (!empty($filters->series))
+        {
+            $pagination->whereHas('episode', function ($query) use ($filters) {
+                return $query->whereIn('series_id', $filters->series);
+            });
+        }
+        if (!empty($filters->actors))
+        {
+            $pagination->whereHas('episode.actors', function ($query) use ($filters) {
+                return $query->whereIn('actor_id', $filters->actors);
+            });
+        }
+        if (!empty($filters->languages))
+        {
+            $pagination->whereHas('episode', function ($query) use ($filters) {
+                return $query->whereIn('language_id', $filters->language);
+            });
+        }
+
+        $pagination = $pagination->paginate();
+
+        $itemsTransformed = new Collection();
+        foreach ( $pagination->items() as $item )
+        {
+
+            if (!$item->stats->count())
+            {
+                foreach ( $dates as $date )
+                {
+                    $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name
+                    ]);
+                }
+            } else
+            {
+                foreach ( $dates as $date )
+                {
+
+                    if (!$item->stats->contains('date', $date))
+                    {
+                        $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name ]);
+                    } else
+                    {
+
+                        $itemsTransformed->push([ 'date' => $date, 'views' => (int) $item->stats->firstWhere('date', $date)->views, 'episode' => $item->name ]);
+
+                    }
+                }
+
+            }
+        }
+
+        $total = $itemsTransformed->groupBy([ 'date' ])->map(function ($url) {
+            return $url->sum('views');
+        });
+
+
+        $itemsTransformed = $itemsTransformed->groupBy([ 'episode' ])->map(function ($episode) {
+            return $episode->map(function ($data) {
+                return [
+                    'date'  => $data['date'],
+                    'views' => $data['views']
+                ];
+            });
+        });
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            [
+                'episodes' => $itemsTransformed,
+                'total'    => $total
+            ],
+            $pagination->total(),
+            $pagination->perPage(),
+            $pagination->currentPage(),
+            [ 'path'  => \Request::url(),
+              'query' => [ 'page' => $pagination->currentPage() ]
+            ]
+        );
+
+
+    }
+
+
+    public function episode(Request $request)
+    {
+
+        $filters = json_decode($request->input('filter'));
+        $format = '%Y-%m-%d';
+
+        if ($request->input('group_by') == 'month')
+        {
+
+            $format = '%Y-%m';
+        }
+
+        $period = CarbonPeriod::create($filters->date->start_date, $filters->date->end_date);
+
+        $dates = [];
+        foreach ( $period as $date )
+        {
+            $dates[] = $date->format('Y-m-d');
+        }
+        $dates = (array_values(array_unique($dates)));
+
+        $pagination = Episode::firstWhere('name', $request->input('name'))->videos()->with([ 'stats' => function ($q) use ($request, $format) {
             $q->selectRaw(DB::raw("video_id, sum(views) as views, DATE_FORMAT(stats.created_at,'{$format}') as date"));
 
             if (!empty($filters->date->start_date))
@@ -73,38 +191,8 @@ class StatsController extends Controller {
                 return $query->whereIn('language_id', $filters->language);
             });
         }
+        $pagination = $pagination->paginate();
 
-
-        $pagination = $pagination->select([ 'url', 'id', 'errors' ])->paginate();
-        $itemsTransformed = new Collection();
-        foreach ( $pagination->items() as $item )
-        {
-            if (!$item->stats->count())
-            {
-                foreach ( $dates as $date )
-                {
-                    $itemsTransformed->push([ 'date' => $date, 'views' => null, 'url' => $item->url
-                    ]);
-                }
-            } else
-            {
-                foreach ( $dates as $date )
-                {
-                    if (!$item->stats->contains('date', $date))
-                    {
-                        $itemsTransformed->push([ 'date' => $date, 'views' => null, 'url' => $item->url ]);
-                    } else
-                    {
-                        $itemsTransformed->push([ 'date' => $date, 'views' => (int) $item->stats->firstWhere('date', $date)->views, 'url' => $item->url ]);
-
-                    }
-                }
-
-            }
-        }
-        $total = $itemsTransformed->groupBy([ 'date' ])->map(function ($url) {
-            return $url->sum('views');
-        });
 
         $errors = [];
         foreach ( $pagination->items() as $item )
@@ -117,10 +205,48 @@ class StatsController extends Controller {
             $ids[$item->url] = $item->id;
         }
 
+        $itemsTransformed = new Collection();
+        foreach ( $pagination->items() as $item )
+        {
+
+            if (!$item->stats->count())
+            {
+                foreach ( $dates as $date )
+                {
+                    $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'url' => $item->url ]);
+                }
+            } else
+            {
+                foreach ( $dates as $date )
+                {
+                    if (!$item->stats->contains('date', $date))
+                    {
+                        $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'url' => $item->url ]);
+                    } else
+                    {
+
+                        $itemsTransformed->push([ 'date' => $date, 'views' => (int) $item->stats->firstWhere('date', $date)->views, 'url' => $item->url ]);
+
+                    }
+                }
+
+            }
+        }
+
+
+        $itemsTransformed = $itemsTransformed->groupBy([ 'url' ])->map(function ($episode) {
+            return $episode->map(function ($data) {
+                return [
+                    'date'  => $data['date'],
+                    'views' => $data['views']
+                ];
+            });
+        });
+
         return new \Illuminate\Pagination\LengthAwarePaginator(
             [
-                'videos' => $itemsTransformed->groupBy([ 'url' ]),
-                'dates'  => $dates, 'total' => $total,
+                'videos' => $itemsTransformed,
+                'dates'  => $dates,
                 'errors' => $errors,
                 'ids'    => $ids
             ],
@@ -131,10 +257,7 @@ class StatsController extends Controller {
               'query' => [ 'page' => $pagination->currentPage() ]
             ]
         );
-
-
     }
-
 
     /**
      * @param \Illuminate\Http\Request $request

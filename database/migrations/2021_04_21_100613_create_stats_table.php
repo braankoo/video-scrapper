@@ -15,7 +15,7 @@ class CreateStatsTable extends Migration {
     {
         Schema::create('stats', function (Blueprint $table) {
             $table->unsignedBigInteger('video_id');
-            $table->bigInteger('views');
+            $table->bigInteger('views')->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->foreign('video_id')->references('id')->on('videos')->cascadeOnDelete();
             $table->primary([ 'created_at', 'video_id' ]);

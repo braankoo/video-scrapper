@@ -49,6 +49,10 @@ class GetViews implements ShouldQueue {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.125 Safari/533.4");
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
         $str = curl_exec($curl);
         curl_close($curl);
         $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -121,7 +125,7 @@ class GetViews implements ShouldQueue {
                 }
                 $data = explode('-', $data[0]->plaintext);
 
-                return (int) str_replace([ ' ', ',' ], '', last($data));
+                return (int) str_replace([ ' ', ',', '.' ], '', last($data));
             case 'xhamster.com':
                 $data = $html->find('div[class=header-icons] > span');
                 if (empty($data))
@@ -129,7 +133,7 @@ class GetViews implements ShouldQueue {
                     $this->insertNulAndMarkVideoAsIncorrect();
                 }
 
-                return (int) str_replace([ ' ', ',' ], '', $data[0]->plaintext);
+                return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             default:
                 throw new \Exception('Unknown Tube');
         }

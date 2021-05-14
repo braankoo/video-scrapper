@@ -39,41 +39,28 @@
                     <b-th>Total</b-th>
                     <b-th v-for="date in total" v-bind:key="total.date">{{ date }}</b-th>
                 </b-tr>
-
             </template>
-            <template #cell()="data" :tdAttr='{style:"min-width: 90px;"}'>
-                <template v-if="data.field.key !== 'video'">
-                    <b-input-group>
-                        <b-input :value="data.value"
-                                 type="number"
-                                 @keyup.enter="update($event.target.value, data.item.video, data.field.key, $event.target.nextElementSibling.firstChild)"/>
-                        <b-input-group-append>
-                            <b-button variant="outline-success"
-                                      @click.self="update($event.target.parentElement.previousElementSibling.value, data.item.video, data.field.key,$event.target)">
-                                &#10003;
-                            </b-button>
-                        </b-input-group-append>
-                    </b-input-group>
-
+            <template #cell()="data">
+                <template v-if="data.field.key !== 'episode'">
+                    {{ data.item[data.field.key] }}
                 </template>
                 <template v-else>
-                    <p>{{ data.item.video }}</p>
-                    <b-row>
-                        <b-col>
-                            <b-btn-group
-                                :class="{ 'w-100': errors[data.item.video] === 'true', 'w-50 pull-right':errors[data.item.video] === 'false'}">
-                                <b-button v-if="errors[data.item.video] === 'true'" variant="danger" disabled>Have
-                                    Errors!
-                                </b-button>
-                                <b-button @click.self="fetch(data.item.video)" variant="success" class="pull-right">
-                                    Fetch
-                                    data
-                                </b-button>
-                            </b-btn-group>
-                        </b-col>
-                    </b-row>
-
+                    {{ data.item.episode }}
+                    <b-button variant="success" @click="data.toggleDetails" class="pull-right">+</b-button>
                 </template>
+            </template>
+            <template #row-details="data">
+                <b-table :api-url="`/api/stats/episode?name=${data.item.episode}`"
+                         id="stats"
+                         :busy.sync="isBusy"
+                         :items="getVideoStats"
+                         table-variant="light"
+                         head-variant="light"
+                         :striped="true"
+                         :bordered="true"
+                         :outlined="true"
+                         :filter="filters"
+                />
             </template>
         </b-table>
         <b-pagination
@@ -123,7 +110,6 @@ export default {
     methods: {
         async getStats(ctx) {
             try {
-
                 const response = await this.$http.get(`${ctx.apiUrl}`, {
                     params: {
                         page: ctx.currentPage,
@@ -131,23 +117,47 @@ export default {
                         filter: ctx.filter
                     }
                 });
+                const tableData = [];
+                for (const episode in response.data.data.episodes) {
+                    const data = {};
+                    data.episode = episode;
+                    for (const v of response.data.data.episodes[episode]) {
+                        data[v.date] = v.views;
+                    }
+                    tableData.push(data);
+                }
+                console.log(tableData);
                 this.totalRows = response.data.total;
                 this.perPage = response.data.per_page;
-                const tableData = [];
 
+                this.total = response.data.data.total;
+
+
+                return tableData;
+
+            } catch (error) {
+                alert('Error occured');
+                console.error(error);
+                return []
+            }
+
+        },
+        async getVideoStats(ctx) {
+            try {
+                const response = await this.$http.get(`${ctx.apiUrl}`, {
+                    params: {
+                        filter: ctx.filter
+                    }
+                });
+                const tableData = [];
                 for (const video in response.data.data.videos) {
                     const data = {};
-                    data.video = video;
-
+                    data.videos = video;
                     for (const v of response.data.data.videos[video]) {
                         data[v.date] = v.views;
                     }
                     tableData.push(data);
                 }
-                this.total = response.data.data.total;
-                this.errors = response.data.data.errors;
-                this.ids = response.data.data.ids;
-
                 return tableData;
 
             } catch (error) {
@@ -161,6 +171,9 @@ export default {
             this.$http.post(`/api/video/fetch/${this.ids[video]}`).then(() => {
                 alert('Data retrieving initialized');
             });
+        },
+        expand() {
+            alert('123');
         },
         update(value, video, date, nodeToAddColor) {
 
@@ -207,8 +220,14 @@ export default {
 </script>
 
 <style>
-td {
-    min-width: 120px !important;
+
+table {
+    font-size: 12px !important;
+}
+
+.table td {
+    padding: 5px !important;
+    max-width: 120px !important;
 }
 
 td button {
