@@ -57,9 +57,9 @@
 
 <script>
 
-import Actors from "../filters/actors";
-import Languages from "../filters/languages";
-import Date from "../filters/date";
+import Actors from "../Filters/actors";
+import Languages from "../Filters/languages";
+import Date from "../Filters/date";
 
 export default {
     name: "SeriesSingle",

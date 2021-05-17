@@ -133,9 +133,9 @@
     </div>
 </template>
 <script>
-import Series from "../filters/series";
-import Languages from "../filters/languages";
-import Actors from "../filters/actors";
+import Series from "../Filters/series";
+import Languages from "../Filters/languages";
+import Actors from "../Filters/actors";
 import moment from 'moment';
 
 export default {
