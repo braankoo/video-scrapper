@@ -1,4 +1,4 @@
-import login from "./login/login";
+import login from "./Login/login";
 import VueRouter from "vue-router";
 import Container from "./Admin/Container";
 import ActorIndex from "./Actor/index";
