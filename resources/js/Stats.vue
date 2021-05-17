@@ -110,10 +110,10 @@
 </template>
 
 <script>
-import series from "./filters/series";
-import actors from "./filters/actors";
-import languages from "./filters/languages";
-import date from "./filters/date";
+import series from "./Filters/series";
+import actors from "./Filters/actors";
+import languages from "./Filters/languages";
+import date from "./Filters/date";
 
 const fileDownload = require('js-file-download');
 export default {
@@ -282,7 +282,7 @@ table {
 table input[type="number"] {
     background: transparent;
     border: 0;
-    font-size: 12px!important;
+    font-size: 12px !important;
 }
 
 td button {

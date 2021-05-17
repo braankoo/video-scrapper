@@ -60,10 +60,10 @@
 </template>
 
 <script>
-import Series from "../filters/series";
-import Actors from "../filters/actors";
-import Languages from "../filters/languages";
-import Date from "../filters/date";
+import Series from "../Filters/series";
+import Actors from "../Filters/actors";
+import Languages from "../Filters/languages";
+import Date from "../Filters/date";
 
 export default {
     name: "episodeIndex",
