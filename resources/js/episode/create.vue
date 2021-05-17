@@ -99,7 +99,7 @@
                             >
                                 <b-select v-model="videos[index].tube_id"
                                           :state="response.videos[index].tube_id.state"
-                                          :options="[{value:1,text:'xhamster'},{value:2, text:'xnxx.com'}]"
+                                          :options="[{value:1,text:'xhamster.com'},{value:2, text:'xnxx.com'}, {value:3, text: 'pornhub.com'},{value:4, text: 'xvideos.com'}]"
                                 />
                             </b-form-group>
                         </b-col>
