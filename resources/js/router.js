@@ -1,8 +1,8 @@
 import login from "./login/login";
 import VueRouter from "vue-router";
-import Container from "./admin/Container";
-import ActorIndex from "./actor/index";
-import ActorCreate from "./actor/create";
+import Container from "./Admin/Container";
+import ActorIndex from "./Actor/index";
+import ActorCreate from "./Actor/create";
 
 import SeriesCreate from './Series/create';
 import SeriesIndex from './Series/index';
