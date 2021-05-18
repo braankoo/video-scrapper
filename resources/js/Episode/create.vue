@@ -196,11 +196,13 @@ export default {
     },
     methods: {
         addVideo() {
-            this.videos.push({
-                'url': '',
-                'tube_id': '',
-                'created_at': moment().format('DD/MM/YYYY')
-            })
+            this.videos.push(
+                {
+                    'url': '',
+                    'tube_id': '',
+                    'created_at': moment().format('YYYY-MM-DD')
+                }
+            );
             this.response.videos.push(
                 {
                     created_ad: {
