@@ -146,6 +146,11 @@ class GetViews implements ShouldQueue {
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             case 'xvideos.com':
                 $data = $html->find('span[class=views-full] > strong[id=nb-views-number]');
+                if (empty($data))
+                {
+                    $this->insertNulAndMarkVideoAsIncorrect();
+                }
+
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             default:
                 throw new \Exception('Unknown Tube');
