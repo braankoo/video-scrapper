@@ -44,8 +44,9 @@
                     &nbsp;&nbsp;
                 </template>
                 <template #cell(id)="data" class="text-center">
-                    <b-button variant="danger" class="btn-sm" @click="removeEpisode(data.item.id)"><i
-                        class="fa fa-window-close"></i></b-button>
+                    <b-button variant="danger" class="btn-sm" @click="removeEpisode(data.item.series_id,data.item.id)">
+                        <i
+                            class="fa fa-window-close"></i></b-button>
                 </template>
             </b-table>
             <b-pagination
@@ -138,8 +139,8 @@ export default {
             }
 
         },
-        removeEpisode(id) {
-            this.$http.delete(`/api/episode/${id}`).then(() => {
+        removeEpisode(seriesId, id) {
+            this.$http.delete(`/api/series/${seriesId}/episode/${id}`).then(() => {
                 this.$refs['episode-table'].refresh();
             }).catch(() => {
 
