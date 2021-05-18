@@ -20,9 +20,11 @@ class CreateLinksTable extends Migration {
             $table->unsignedBigInteger('tube_id');
             $table->enum('errors', [ 'true', 'false' ])->default('false');
             $table->foreign('tube_id')->references('id')->on('tubes')->cascadeOnDelete();
+            $table->foreign('episode_id')->references('id')->on('episodes')->cascadeOnDelete();
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.
