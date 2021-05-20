@@ -65,7 +65,6 @@ class GetViews implements ShouldQueue {
 
             $html = str_get_html($str);
             $numberOfViews = $this->parse($html);
-            $previousData = DB::table('stats')->selectRaw('SUM(views) as views')->whereDate('created_at', '<', Carbon::today()->format('Y-m-d'))->where('video_id', '=', $this->video->id)->first();
 
 
             if (is_null($numberOfViews))
@@ -80,25 +79,12 @@ class GetViews implements ShouldQueue {
                 $this->video->save();
             }
 
-            if (!is_null($previousData))
-            {
-
-                DB::table('stats')->insert(
-                    [
-                        'video_id' => $this->video->id,
-                        'views'    => $numberOfViews - $previousData->views
-                    ]
-                );
-            } else
-            {
-
-                DB::table('stats')->insert(
-                    [
-                        'video_id' => $this->video->id,
-                        'views'    => $numberOfViews
-                    ]
-                );
-            }
+            DB::table('stats')->insert(
+                [
+                    'video_id' => $this->video->id,
+                    'views'    => $numberOfViews
+                ]
+            );
         } else
         {
             $this->insertNulAndMarkVideoAsIncorrect();
