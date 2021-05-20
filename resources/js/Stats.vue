@@ -37,12 +37,12 @@
             <template #thead-top="data">
                 <b-tr>
                     <b-th>Total</b-th>
-                    <b-th v-for="date in total" v-bind:key="total.date">{{ date }}</b-th>
+                    <b-th v-for="date in total" v-bind:key="total.date">{{ format(date) }}</b-th>
                 </b-tr>
             </template>
             <template #cell()="data">
                 <template v-if="data.field.key !== 'episode'">
-                    {{ data.item[data.field.key] }}
+                    {{ format(data.item[data.field.key]) }}
                 </template>
                 <template v-else>
                     {{ data.item.episode }}
@@ -140,7 +140,13 @@ export default {
                 date: {}
             },
             errors: {},
-            ids: {}
+            ids: {},
+            formatter() {
+                return new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                });
+            }
         }
     },
     methods: {
@@ -209,8 +215,8 @@ export default {
                 alert('Data retrieving initialized');
             });
         },
-        expand() {
-            alert('123');
+        format(number) {
+            return this.formatter().format(number);
         },
         update(value, video, date, nodeToAddColor) {
 

@@ -103,7 +103,10 @@ export default {
                 {
                     key: 'views',
                     label: 'Views',
-                    sortable: true
+                    sortable: true,
+                    formatter: (value) => {
+                        return this.formatter().format(value);
+                    }
                 },
                 {
                     key: 'id',
@@ -111,7 +114,13 @@ export default {
                     class: 'text-center'
                 },
 
-            ]
+            ],
+            formatter() {
+                return new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                });
+            }
         }
     }
     ,
