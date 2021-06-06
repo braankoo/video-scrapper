@@ -15,7 +15,7 @@
                     <date @selected-date="filters.date = $event"/>
                 </b-col>
             </b-row>
-            <b-table api-url="/api/episode"
+            <b-table api-url="/api/episode/stats"
                      id="Episodes"
                      :busy.sync="isBusy"
                      :items="getEpisodes"
@@ -128,7 +128,7 @@ export default {
         async getEpisodes(ctx) {
             try {
                 console.log(ctx);
-                const response = await this.$http.get(`${ctx.apiUrl}/stats`, {
+                const response = await this.$http.get(`${ctx.apiUrl}`, {
                     params: {
                         page: ctx.currentPage,
                         perPage: ctx.perPage,

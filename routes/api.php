@@ -21,11 +21,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::apiResource('actor', \App\Http\Controllers\ActorController::class);
 Route::apiResource('series', \App\Http\Controllers\SeriesController::class);
+Route::get('/series/{series}/stats', [ \App\Http\Controllers\SeriesController::class, 'stats' ]);
+
 Route::apiResource('language', \App\Http\Controllers\LanguageController::class);
 
 
 Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
-Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, 'indexAll' ]);
+Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, 'stats' ]);
 
 
 Route::apiResource('series.episode', \App\Http\Controllers\EpisodeController::class)->except([ 'store' ]);

@@ -104,13 +104,13 @@ const router = new VueRouter(
                         name: 'Episode Create'
                     },
                     {
+                        path: 'episode/stats',
+                        component: EpisodeStats
+                    },
+                    {
                         path: 'episode/:episode',
                         component: EpisodeEdit,
                         name: 'Episode Edit'
-                    },
-                    {
-                        path: 'episode/stats',
-                        component: EpisodeStats
                     },
                     {
                         path: 'stats',

@@ -111,7 +111,7 @@ class EpisodeController extends Controller {
         return response()->json($episode->load([ 'videos:id,episode_id,url,tube_id,created_at', 'language:id,name', 'actors:id,name', 'series:id,name' ]), JsonResponse::HTTP_OK);
     }
 
-//    public function show(Series $series, Episode $episode, Request $request): JsonResponse
+//    public function stats(Series $series, Episode $episode, Request $request): JsonResponse
 //    {
 //        $filters = json_decode($request->input('filter'));
 //
@@ -135,7 +135,6 @@ class EpisodeController extends Controller {
      * @param \Illuminate\Http\Request $request
      * @param \App\Models\Episode $episode
      * @return \Illuminate\Http\JsonResponse
-     * @throws \Illuminate\Validation\ValidationException
      */
     public function update(Request $request, Episode $episode): JsonResponse
     {
