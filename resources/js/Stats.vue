@@ -166,15 +166,15 @@ export default {
                 const tableData = [];
                 console.log(response.data);
                 for (const series in response.data.data.series) {
-                    const data = {};
-                    data.series = series;
                     for (const episode in response.data.data.series[series]) {
+                        const data = {};
+                        data.series = series;
                         data.episode = episode;
                         for (const v of response.data.data.series[series][episode]) {
                             data[v.date] = v.views;
                         }
+                        tableData.push(data);
                     }
-                    tableData.push(data);
                 }
                 console.log(tableData);
 
