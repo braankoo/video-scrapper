@@ -15,6 +15,10 @@
                      :outlined="true"
                      ref="actor-table"
             >
+                <template #cell(name)="data" class="text-center">
+                    <router-link :to="{ name: 'Edit Actor', params: { actor: data.item.id }}">{{ data.item.name }}
+                    </router-link>
+                </template>
                 <template #cell(id)="data" class="text-center">
                     <b-button variant="danger" class="btn-sm" @click="removeActor(data.item.id)"><i
                         class="fa fa-window-close"></i></b-button>

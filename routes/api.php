@@ -23,8 +23,11 @@ Route::apiResource('actor', \App\Http\Controllers\ActorController::class);
 Route::apiResource('series', \App\Http\Controllers\SeriesController::class);
 Route::apiResource('language', \App\Http\Controllers\LanguageController::class);
 
-Route::get('/episode', [ \App\Http\Controllers\EpisodeController::class, 'indexAll' ]);
-Route::post('/episode', [ \App\Http\Controllers\EpisodeController::class, 'store' ]);
+
+Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
+Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, 'indexAll' ]);
+
+
 Route::apiResource('series.episode', \App\Http\Controllers\EpisodeController::class)->except([ 'store' ]);
 
 Route::get('/video', [ App\Http\Controllers\VideoController::class, 'index' ]);
@@ -40,3 +43,6 @@ Route::get('/stats/csv', [ \App\Http\Controllers\StatsController::class, 'csv' ]
 
 
 Route::get('/check', [ \App\Http\Controllers\LoginController::class, 'check' ]);
+
+
+Route::get('/countries', [ \App\Http\Controllers\CountriesController::class, 'index' ]);

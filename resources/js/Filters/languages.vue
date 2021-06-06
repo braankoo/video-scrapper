@@ -63,7 +63,22 @@ export default {
                 this.$emit('selected-languages', [languages].map(language => language.id));
             }
 
+        },
+        'preSelected': {
+            deep: true,
+            handler(val) {
+                this.language.selected = val;
+            }
         }
+    },
+    beforeMount() {
+        this.$http.get('/api/language', {
+            params: {
+                search: ''
+            }
+        }).then((response) => {
+            this.language.loaded = response.data.data;
+        });
     }
 
 }

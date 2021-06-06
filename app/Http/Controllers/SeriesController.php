@@ -30,10 +30,19 @@ class SeriesController extends Controller {
 
     /**
      * @param \App\Models\Series $series
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Series $series): JsonResponse
+    {
+        return response()->json($series, JsonResponse::HTTP_OK);
+    }
+
+    /**
+     * @param \App\Models\Series $series
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Series $series, Request $request): JsonResponse
+    public function stats(Series $series, Request $request): JsonResponse
     {
 
         $filters = json_decode($request->input('filter'));
@@ -79,7 +88,7 @@ class SeriesController extends Controller {
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([ 'name' => 'required|unique:series' ]);
+        $request->validate([ 'name' => 'required' ]);
         Series::insert([ 'name' => $request->input('name') ]);
 
         return response()->json([ 'message' => 'Successfuly Created' ], JsonResponse::HTTP_CREATED);

@@ -16,9 +16,12 @@
                      ref="series-table"
             >
                 <template #cell(name)="data" class="text-center">
-                    <router-link :to="{name: 'Series Single', params: {series: data.item.id}}">
+                    <router-link :to="{name: 'Series Edit', params: {series: data.item.id}}">
                         {{ data.item.name }}
                     </router-link>
+                </template>
+                <template #cell(stats)="data" class="text-center">
+                    <router-link :to="{name:'Series Stats', params: {series: data.item.id}}">Stats</router-link>
                 </template>
                 <template #cell(id)="data" class="text-center">
                     <b-button variant="danger" class="btn-sm" @click="removeSeries(data.item.id)"><i
@@ -46,17 +49,23 @@ export default {
             totalRows: 1,
             perPage: 5,
             isBusy: false,
-            fields: [{
-                key: 'name',
-            }, {
-                key: 'episodes_count',
-                label: 'Number Of Episodes'
-            },
+            fields: [
+                {
+                    key: 'name',
+                }, {
+                    key: 'episodes_count',
+                    label: 'Number Of Episodes'
+                },
+                {
+                    key: 'stats',
+                },
                 {
                     key: 'id',
                     label: 'Remove',
                     class: 'text-center'
-                }]
+                }
+
+            ]
         }
     },
     methods: {

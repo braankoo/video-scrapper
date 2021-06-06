@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateActorsTable extends Migration {
+class CreateCountriesTable extends Migration {
 
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateActorsTable extends Migration {
      */
     public function up()
     {
-        Schema::create('actors', function (Blueprint $table) {
+        Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->char('name', 255)->unique();
-            $table->enum('gender', [ 'MALE', 'FEMALE' ]);
-            $table->timestamps();
+            $table->char('name');
+            $table->char('code');
         });
     }
 
@@ -28,6 +27,6 @@ class CreateActorsTable extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists('actors');
+        Schema::dropIfExists('countries');
     }
 }

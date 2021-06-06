@@ -63,8 +63,25 @@ export default {
                 this.$emit('selected-series', [series].map(item => item.id));
             }
 
+        },
+        'preSelected': {
+            deep: true,
+            handler(val) {
+                this.series.selected = val;
+            }
         }
+
+    },
+    beforeMount() {
+        this.$http.get('/api/series', {
+            params: {
+                search: ''
+            }
+        }).then((response) => {
+            this.series.loaded = response.data.data;
+        });
     }
+
 }
 </script>
 

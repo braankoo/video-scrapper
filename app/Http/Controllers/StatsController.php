@@ -40,7 +40,7 @@ class StatsController extends Controller {
         $dates = (array_values(array_unique($dates)));
 
 
-        $pagination = Episode::with([ 'stats' => function ($q) use ($request, $format) {
+        $pagination = Episode::with([ 'series', 'stats' => function ($q) use ($request, $format) {
             $q->selectRaw(DB::raw("episode_id, sum(views) as views, DATE_FORMAT(stats.created_at,'{$format}') as date"));
 
             if (!empty($filters->date->start_date))
@@ -84,8 +84,7 @@ class StatsController extends Controller {
             {
                 foreach ( $dates as $date )
                 {
-                    $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name
-                    ]);
+                    $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name, 'series' => $item->series->name ]);
                 }
             } else
             {
@@ -94,11 +93,11 @@ class StatsController extends Controller {
 
                     if (!$item->stats->contains('date', $date))
                     {
-                        $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name ]);
+                        $itemsTransformed->push([ 'date' => $date, 'views' => 0, 'episode' => $item->name, 'series' => $item->series->name ]);
                     } else
                     {
 
-                        $itemsTransformed->push([ 'date' => $date, 'views' => (int) $item->stats->firstWhere('date', $date)->views, 'episode' => $item->name ]);
+                        $itemsTransformed->push([ 'date' => $date, 'views' => (int) $item->stats->firstWhere('date', $date)->views, 'episode' => $item->name, 'series' => $item->series->name ]);
 
                     }
                 }
@@ -111,19 +110,23 @@ class StatsController extends Controller {
         });
 
 
-        $itemsTransformed = $itemsTransformed->groupBy([ 'episode' ])->map(function ($episode) {
-            return $episode->map(function ($data) {
-                return [
-                    'date'  => $data['date'],
-                    'views' => $data['views']
-                ];
+        $itemsTransformed = $itemsTransformed->groupBy([ 'series' ])->map(function ($series) {
+            return $series->groupBy([ 'episode' ])->map(function ($episode) {
+
+                return $episode->map(function ($data) {
+                    return [
+                        'date'  => $data['date'],
+                        'views' => $data['views']
+                    ];
+                });
             });
         });
 
+
         return new \Illuminate\Pagination\LengthAwarePaginator(
             [
-                'episodes' => $itemsTransformed,
-                'total'    => $total
+                'series' => $itemsTransformed,
+                'total'  => $total
             ],
             $pagination->total(),
             $pagination->perPage(),
@@ -137,7 +140,11 @@ class StatsController extends Controller {
     }
 
 
-    public function episode(Request $request)
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function episode(Request $request): \Illuminate\Pagination\LengthAwarePaginator
     {
 
         $filters = json_decode($request->input('filter'));

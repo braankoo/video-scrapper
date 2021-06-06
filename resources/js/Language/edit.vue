@@ -1,8 +1,8 @@
 <template>
     <div id="create-language">
-        <b-card header="New language">
+        <b-card header="Update language">
             <b-form-group
-                label="language name"
+                label="Language"
                 label-cols-sm="4"
                 content-cols-sm="8"
                 label-cols-lg="3"
@@ -14,15 +14,14 @@
                 <b-input
                     id="language"
                     name="language"
-                    @keyup.enter="createLanguage"
+                    @keyup.enter="updateLanguage"
                     v-model="language.name"
                     :state="response.name.state"
                 />
             </b-form-group>
             <template #footer>
-                <b-button :disabled="language.name === ''" variant="success" class="pull-right" @click="createLanguage">
-                    Create
-                    New
+                <b-button :disabled="language.name === ''" variant="success" class="pull-right" @click="updateLanguage">
+                    Update Details
                 </b-button>
             </template>
         </b-card>
@@ -31,7 +30,7 @@
 
 <script>
 export default {
-    name: "languageCreate",
+    name: "edit",
     data() {
         return {
             language: {
@@ -46,16 +45,12 @@ export default {
         }
     },
     methods: {
-        createLanguage() {
+        updateLanguage() {
             if (this.language.name !== '') {
-                this.$http.post('/api/language', {
+                this.$http.patch(`/api/language/${this.$route.params.language}`, {
                     ...this.language
                 }).then(() => {
                     this.response.name.state = true;
-                    setTimeout(() => {
-                        this.language.name = '';
-                        this.response.name.state = null;
-                    }, 1300);
 
                 }).catch((error) => {
                     const errors = error.response.data.errors;
@@ -80,6 +75,13 @@ export default {
                 this.response.name.feedback = '';
             }
         }
+    },
+    beforeMount() {
+        this.$http.get(`/api/language/${this.$route.params.language}`).then((response) => {
+            this.language.name = response.data.name;
+        }).catch((err) => {
+            console.log(err);
+        });
     }
 }
 </script>

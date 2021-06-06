@@ -37,6 +37,16 @@ class LanguageController extends Controller {
         return response()->json([ 'message' => 'Successfuly Created' ], JsonResponse::HTTP_CREATED);
     }
 
+
+    /**
+     * @param \App\Models\Language $language
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Language $language): JsonResponse
+    {
+        return response()->json($language, JsonResponse::HTTP_CREATED);
+    }
+
     /**
      * Update the specified resource in storage.
      *

@@ -15,7 +15,7 @@ class CreateEpisodesTable extends Migration {
     {
         Schema::create('episodes', function (Blueprint $table) {
             $table->id();
-            $table->char('name')->unique();
+            $table->char('name');
             $table->unsignedBigInteger('series_id');
             $table->unsignedBigInteger('language_id');
             $table->foreign('series_id')->references('id')->on('series')->cascadeOnDelete();

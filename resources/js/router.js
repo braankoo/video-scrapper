@@ -3,17 +3,24 @@ import VueRouter from "vue-router";
 import Container from "./Admin/Container";
 import ActorIndex from "./Actor/index";
 import ActorCreate from "./Actor/create";
+import ActorEdit from "./Actor/edit";
 
 import SeriesCreate from './Series/create';
 import SeriesIndex from './Series/index';
 import SeriesSingle from './Series/single';
+import SeriesEdit from './Series/edit';
 
 import LanguageCreate from './Language/create';
 import LanguageIndex from './Language/index';
+import LanguageEdit from './Language/edit';
 
-import EpisodeCreate from './Episode/create';
 import EpisodeIndex from './Episode/index';
+import EpisodeCreate from './Episode/create';
+import EpisodeStats from './Episode/stats';
 import EpisodeSingle from './Episode/single'
+import EpisodeEdit from './Episode/edit';
+
+
 import Stats from "./Stats";
 
 
@@ -46,6 +53,11 @@ const router = new VueRouter(
                         component: ActorCreate
                     },
                     {
+                        path: 'actor/:actor',
+                        component: ActorEdit,
+                        name: 'Edit Actor'
+                    },
+                    {
                         path: 'series',
                         component: SeriesIndex
                     },
@@ -55,8 +67,13 @@ const router = new VueRouter(
                     },
                     {
                         path: 'series/:series',
+                        component: SeriesEdit,
+                        name: 'Series Edit'
+                    },
+                    {
+                        path: 'series/:series/stats',
                         component: SeriesSingle,
-                        name: 'Series Single'
+                        name: 'Series Stats'
                     },
                     {
                         path: 'series/:series/episode/:episode',
@@ -72,12 +89,28 @@ const router = new VueRouter(
                         component: LanguageCreate
                     },
                     {
+                        path: 'language/:language',
+                        component: LanguageEdit,
+                        name: 'Language Edit'
+                    },
+                    {
                         path: 'episode',
-                        component: EpisodeIndex
+                        component: EpisodeIndex,
+
                     },
                     {
                         path: 'episode/create',
-                        component: EpisodeCreate
+                        component: EpisodeCreate,
+                        name: 'Episode Create'
+                    },
+                    {
+                        path: 'episode/:episode',
+                        component: EpisodeEdit,
+                        name: 'Episode Edit'
+                    },
+                    {
+                        path: 'episode/stats',
+                        component: EpisodeStats
                     },
                     {
                         path: 'stats',

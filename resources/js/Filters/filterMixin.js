@@ -4,6 +4,9 @@ export default {
             type: Boolean,
             default: true,
             required: false
+        },
+        preSelected: {
+            required: false
         }
     }
 }

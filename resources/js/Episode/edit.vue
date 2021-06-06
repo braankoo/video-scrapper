@@ -1,6 +1,6 @@
 <template>
     <div id="Episodes">
-        <b-card header="Create New Episode">
+        <b-card header="Edit Episode">
             <b-form-group
                 label="Episode Name"
                 label-cols-sm="4"
@@ -28,7 +28,7 @@
                 label-for="series"
                 :invalid-feedback="response.series.feedback"
             >
-                <series :multiple="false" @selected-series="series = $event[0]" ref="series"/>
+                <series :multiple="false" @selected-series="series = $event[0]" :pre-selected="preselected.series"/>
                 <b-form-invalid-feedback :state="response.series.state">
                     {{ response.series.feedback }}
                 </b-form-invalid-feedback>
@@ -44,7 +44,9 @@
                 label-for="series"
                 :invalid-feedback="response.language.feedback"
             >
-                <languages :multiple="false" @selected-languages="language = $event[0]" ref="languages"/>
+                <languages :multiple="false"
+                           @selected-languages="language = $event[0]"
+                           :pre-selected="preselected.language"/>
                 <b-form-invalid-feedback :state="response.language.state">
                     {{ response.language.feedback }}
                 </b-form-invalid-feedback>
@@ -59,7 +61,9 @@
                 label-for="actors"
                 :invalid-feedback="response.actors.feedback"
             >
-                <actors @selected-actors="actors = $event" ref="actors"/>
+                <actors @selected-actors="actors = $event"
+                        :pre-selected="preselected.actors"
+                />
                 <b-form-invalid-feedback :state="response.actors.state">
                     {{ response.actors.feedback }}
                 </b-form-invalid-feedback>
@@ -118,16 +122,18 @@
                 </template>
             </b-card>
             <br>
-            <b-button variant="success" class="pull-right" @click="addVideo">Add Video</b-button>
+            <b-button variant="success" class="p2021_06_06_200926_create_countries_tableull-right" @click="addVideo('','', todayDate())">
+                Add Video
+            </b-button>
             <b-row>
                 <b-col>
                     <b-form-valid-feedback :state="valid" class="alert alert-success">
-                        Successfuly Added
+                        Successfuly Updated
                     </b-form-valid-feedback>
                 </b-col>
             </b-row>
             <template #footer>
-                <b-button variant="success" @click="storeEpisode">Save episode</b-button>
+                <b-button variant="success" @click="storeEpisode">Update episode</b-button>
             </template>
         </b-card>
     </div>
@@ -136,11 +142,11 @@
 import Series from "../Filters/series";
 import Languages from "../Filters/languages";
 import Actors from "../Filters/actors";
-
 import moment from 'moment';
 
+
 export default {
-    name: "EpisodeCreate",
+    name: "edit",
     components: {Actors, Languages, Series},
     data() {
         return {
@@ -149,15 +155,15 @@ export default {
                 name: ''
             },
             series: '',
+            preselected: {
+                series: [],
+                languages: [],
+                actors: []
+            },
+            seriesSelected: [],
             actors: [],
             language: [],
-            videos: [
-                {
-                    'url': '',
-                    'tube_id': '',
-                    'created_at': moment().format('YYYY-MM-DD')
-                }
-            ],
+            videos: [],
             response: {
                 name: {
                     state: null,
@@ -175,38 +181,25 @@ export default {
                     state: null,
                     feedback: ''
                 },
-                videos: [
-                    {
-                        created_ad: {
-                            state: null,
-                            feedback: ''
-                        },
-                        url: {
-                            state: null,
-                            feedback: ''
-                        },
-                        tube_id: {
-                            state: null,
-                            feedback: ''
-                        }
-
-                    }
-                ]
+                videos: []
             }
         }
     },
     methods: {
-        addVideo() {
+        todayDate() {
+            return moment().format('YYYY-MM-DD');
+        },
+        addVideo(url = '', tubeId = '', created_at) {
             this.videos.push(
                 {
-                    'url': '',
-                    'tube_id': '',
-                    'created_at': moment().format('YYYY-MM-DD')
+                    'url': url,
+                    'tube_id': tubeId,
+                    'created_at': created_at
                 }
             );
             this.response.videos.push(
                 {
-                    created_ad: {
+                    created_at: {
                         state: null,
                         feedback: ''
                     },
@@ -226,7 +219,7 @@ export default {
             this.videos.splice(index, 1);
         },
         storeEpisode() {
-            this.$http.post('/api/episode', {
+            this.$http.patch(`/api/episode/${this.$route.params.episode}`, {
                 name: this.episode.name,
                 series: this.series,
                 actors: this.actors,
@@ -239,26 +232,22 @@ export default {
                 for (let i = 0; i < this.response.videos.length; i++) {
                     this.response.videos[i].url.state = true;
                 }
-
                 setTimeout(() => {
                     this.response.name.state = null;
+                    this.response.series.state = null;
+                    this.response.actors.state = null;
+                    this.response.language.state = null;
                     for (let i = 0; i < this.response.videos.length; i++) {
                         this.response.videos[i].url.state = null;
+                        this.response.videos[i].url.feedback = '';
+
+                        this.response.videos[i]['created_at'].feedback = '';
+                        this.response.videos[i]['created_at'].state = null;
+
+                        this.response.videos[i]['tube_id'].feedback = '';
+                        this.response.videos[i]['tube_id'].state = null;
                     }
-                    this.videos = [
-                        {
-                            'url': '',
-                            'tube_id': '',
-                            'created_at': moment().format('YYYY-MM-DD')
-                        }
-                    ];
-                    this.episode.name = '';
-                    this.$refs.actors.actors.selected = [];
-                    this.$refs.series.series.selected = [];
-                    this.$refs.languages.language.selected = [];
-                    this.language = [];
-                    this.valid = null;
-                }, 1300);
+                }, 1500);
             }).catch((error) => {
                 this.clearFeedbacks();
                 const errors = error.response.data.errors;
@@ -280,8 +269,18 @@ export default {
                                 }
 
                             } else if (Object.prototype.toString.call(errors[group]) === '[object Object]') {
-                                this.response[group].feedback = errors[group].join(' ');
-                                this.response[group].state = false;
+                                if (group === 'videos') {
+                                    for (const index in errors[group]) {
+                                        for (const videoErr in errors[group][index]) {
+                                            this.response[group][index][videoErr].feedback = errors[group][index][videoErr].join(' ');
+                                            this.response[group][index][videoErr].state = false;
+                                        }
+                                    }
+
+                                } else {
+                                    this.response[group].feedback = errors[group].join(' ');
+                                    this.response[group].state = false;
+                                }
                             }
 
                         }
@@ -306,14 +305,33 @@ export default {
 
 
             for (let i = 0; i < this.response.videos.length; i++) {
-                this.response.videos[i].created_ad.state = null;
-                this.response.videos[i].created_ad.feedback = '';
+                this.response.videos[i].created_at.state = null;
+                this.response.videos[i].created_at.feedback = '';
                 this.response.videos[i].url.feedback = '';
                 this.response.videos[i].url.state = null;
                 this.response.videos[i].tube_id.feedback = '';
                 this.response.videos[i].tube_id.state = null;
             }
         }
+    },
+    beforeMount() {
+        this.$http.get(`/api/episode/${this.$route.params.episode}`).then((response) => {
+            //
+            this.episode.name = response.data.name;
+            this.series = response.data.series;
+            this.actors = response.data.actors;
+
+            //
+            this.preselected.language = response.data.language;
+            this.preselected.series = [response.data.series];
+            this.preselected.language = [response.data.language];
+            this.preselected.actors = response.data.actors;
+            response.data.videos.forEach((video) => {
+                this.addVideo(video.url, video.tube_id, video.created_at);
+            });
+        }).catch((err) => {
+            console.log(err);
+        });
     }
 }
 </script>

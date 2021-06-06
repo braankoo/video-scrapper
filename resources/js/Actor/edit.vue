@@ -1,6 +1,6 @@
 <template>
-    <div id="create-actor">
-        <b-card header="New Actor">
+    <div id="update-actor">
+        <b-card header="Update Actor Details">
             <b-form-group
                 label="Actor name"
                 label-cols-sm="4"
@@ -14,7 +14,7 @@
                 <b-input
                     id="actor"
                     name="actor"
-                    @keyup.enter="createActor"
+                    @keyup.enter="updateActor"
                     v-model="actor.name"
                     :state="response.name.state"
                 />
@@ -64,15 +64,11 @@
                     :hide-selected="true"
                     @search-change="searchCountries"
                     placeholder="Search Countries"/>
-                <b-form-valid-feedback :state="response.country.state" class="alert alert-success">
-                    {{ response.country.feedback }}
-                </b-form-valid-feedback>
             </b-form-group>
-
-
             <template #footer>
-                <b-button :disabled="actor.name === ''" variant="success" class="pull-right" @click="createActor">Create
-                    New
+                <b-button :disabled="actor.name === ''" variant="success" class="pull-right" @click="updateActor">
+                    Update
+                    Details
                 </b-button>
             </template>
         </b-card>
@@ -83,7 +79,7 @@
 import multiselect from 'vue-multiselect';
 
 export default {
-    name: "ActorCreate",
+    name: "ActorUpdate",
     components: {
         multiselect
     },
@@ -116,24 +112,19 @@ export default {
         }
     },
     methods: {
-        createActor() {
+        updateActor() {
             if (this.actor.name !== '') {
-                this.$http.post('/api/actor', {
+                this.$http.patch(`/api/actor/${this.$route.params.actor}`, {
                     ...this.actor
                 }).then(() => {
                     this.response.name.state = true;
+
                     setTimeout(() => {
-                        this.actor.name = '';
-                        this.actor.gender = 'FEMALE';
-                        this.actor.country = '';
                         this.response.name.state = null;
-                        this.response.country.state = null;
-                        this.response.gender.state = null;
                     }, 1300)
 
                 }).catch((error) => {
                     const errors = error.response.data.errors;
-                    console.log(errors);
                     if (error.response.status === 422) {
                         for (let error in errors) {
                             if (errors.hasOwnProperty(error)) {
@@ -145,7 +136,6 @@ export default {
                     }
                 })
             }
-
         },
         searchCountries(query) {
             this.$http.get('/api/countries', {
@@ -157,21 +147,25 @@ export default {
                 this.countries.loaded = response.data.data;
             });
         }
-
     },
     watch: {
-        'actor.name': function (newVal) {
-            if (this.response.name.state || !this.response.name.state) {
-                this.response.name.state = null;
-                this.response.name.feedback = '';
-            }
-        },
         'countries.selected': function (newVal) {
-            this.actor.country = newVal.id;
+            if (newVal.hasOwnProperty('id')) {
+                this.actor.country = newVal.id;
+            }
         }
     },
     beforeMount() {
-        this.searchCountries('');
+        this.$http.get(`/api/actor/${this.$route.params.actor}`).then((response) => {
+                console.log(response.data);
+                this.actor.name = response.data.name;
+                this.actor.gender = response.data.gender;
+                this.countries.selected = response.data.country;
+
+            }
+        ).catch((err) => {
+            console.log(err);
+        });
     }
 }
 </script>

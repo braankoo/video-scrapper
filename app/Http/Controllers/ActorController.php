@@ -32,11 +32,26 @@ class ActorController extends Controller {
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([ 'name' => 'required|unique:actors' ]);
+        $request->validate([ 'name' => 'required|unique:actors', 'gender' => 'required', 'country' => 'required' ]);
 
-        Actor::insert([ 'name' => $request->input('name') ]);
+        Actor::insert(
+            [
+                'name'       => $request->input('name'),
+                'gender'     => $request->input('gender'),
+                'country_id' => $request->input('country')
+            ]
+        );
 
         return response()->json([ 'message' => 'Successfuly created' ], JsonResponse::HTTP_CREATED);
+    }
+
+    /**
+     * @param \App\Models\Actor $actor
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Actor $actor): JsonResponse
+    {
+        return response()->json($actor->load([ 'country' ]), JsonResponse::HTTP_OK);
     }
 
     /**
@@ -48,8 +63,10 @@ class ActorController extends Controller {
      */
     public function update(Request $request, Actor $actor): \Illuminate\Http\JsonResponse
     {
-        $request->validate([ 'name' => 'required|unique:actors' ]);
+        $request->validate([ 'name' => 'required', 'gender' => 'required', 'country' => 'required' ]);
         $actor->name = $request->input('name');
+        $actor->gender = $request->input('gender');
+        $actor->country_id = $request->input('country');
         $actor->save();
 
         return response()->json([ 'message' => 'Successfuly updated' ], JsonResponse::HTTP_OK);

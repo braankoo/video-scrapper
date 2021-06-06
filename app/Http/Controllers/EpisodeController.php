@@ -8,7 +8,6 @@ use App\Models\Series;
 use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 /**
  * Class EpisodeController
@@ -22,7 +21,7 @@ class EpisodeController extends Controller {
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function indexAll(Request $request): JsonResponse
+    public function stats(Request $request): JsonResponse
     {
         $filters = json_decode($request->input('filter'));
 
@@ -64,21 +63,12 @@ class EpisodeController extends Controller {
     }
 
     /**
-     * @param \App\Models\Series $series
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function index(Series $series, Request $request): JsonResponse
+    public function index(Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return response()->json([ $series->episodes()->with([ 'actors', 'language' ])->with([ 'stats' => function ($q) use ($request) {
-            $q->select(DB::raw('SUM(views) as views'));
-            if ($request->has('start_date') && $request->has('end_date'))
-            {
-                $q->whereBetween('stats.created_at', [ $request->input('start_date'), $request->input('end_date') ]);
-            }
-            $q->groupBy('episode_id');
-
-        } ])->paginate('10', [ '*' ], 'page', $request->input('page')) ], JsonResponse::HTTP_OK);
+        return Episode::paginate(10, [ 'id', 'name' ]);
     }
 
     /**
@@ -89,10 +79,10 @@ class EpisodeController extends Controller {
     {
         $request->validate(
             [
-                'name'                => 'required|unique:episodes',
+                'name'                => 'required',
                 'language'            => 'required|exists:languages,id',
                 'actors'              => 'required|exists:actors,id',
-                'videos.*.url'        => 'required|url|unique:videos,url',
+                'videos.*.url'        => 'required|url',
                 'videos.*.tube_id'    => 'required|exists:tubes,id',
                 'videos.*.created_at' => 'date',
                 'series'              => 'required|exists:series,id'
@@ -114,56 +104,71 @@ class EpisodeController extends Controller {
         return response()->json([ 'message' => 'Successfuly Created' ], JsonResponse::HTTP_CREATED);
     }
 
-    /**
-     * @param \App\Models\Series $series
-     * @param \App\Models\Episode $episode
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show(Series $series, Episode $episode, Request $request): JsonResponse
+
+    public function show(Episode $episode)
     {
-        $filters = json_decode($request->input('filter'));
 
-        $query = $episode->videos()->select(
-            [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
-            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
-
-        $query = $this->dateRangeFilter($query, $filters->date);
-
-        return response()->json(
-            $query->groupBy('videos.id')
-                ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'videos.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
-                ->paginate('10', [ '*' ], 'page', $request->input('page'))
-
-            , JsonResponse::HTTP_OK);
+        return response()->json($episode->load([ 'videos:id,episode_id,url,tube_id,created_at', 'language:id,name', 'actors:id,name', 'series:id,name' ]), JsonResponse::HTTP_OK);
     }
+
+//    public function show(Series $series, Episode $episode, Request $request): JsonResponse
+//    {
+//        $filters = json_decode($request->input('filter'));
+//
+//        $query = $episode->videos()->select(
+//            [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
+//            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
+//
+//        $query = $this->dateRangeFilter($query, $filters->date);
+//
+//        return response()->json(
+//            $query->groupBy('videos.id')
+//                ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'videos.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
+//                ->paginate('10', [ '*' ], 'page', $request->input('page'))
+//
+//            , JsonResponse::HTTP_OK);
+//    }
 
     /**
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Series $series
      * @param \App\Models\Episode $episode
      * @return \Illuminate\Http\JsonResponse
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function update(Request $request, Series $series, Episode $episode): JsonResponse
+    public function update(Request $request, Episode $episode): JsonResponse
     {
-        \Validator::validate($request->all(), [
-            'name'        => [ 'unique:episodes,name', Rule::requiredIf(!$request->has('language_id')) ],
-            'language_id' => [ 'exists:languages,id', Rule::requiredIf(!$request->has('name')) ]
-        ]);
+        $request->validate(
+            [
+                'name'                => 'required',
+                'language'            => 'required|exists:languages,id',
+                'actors'              => 'required|exists:actors,id',
+                'videos.*.url'        => 'required|url',
+                'videos.*.tube_id'    => 'required|exists:tubes,id',
+                'videos.*.created_at' => 'date',
+                'series'              => 'required|exists:series,id'
+            ]
+        );
 
+        $episode->name = $request->input('name');
+        $episode->language_id = $request->input('language');
+        $episode->actors()->sync($request->input('actors'));
 
-        if ($request->has('name'))
-        {
-            $episode->name = $request->input('name');
-        }
-        if ($request->has('language_id'))
-        {
-            $episode->language_id = $request->input('language_id');
-        }
+        $episode->videos()->whereNotIn(
+            'url',
+            array_map(function ($video) {
+                return $video['url'];
+            }, $request->input('videos'))
+        )->delete();
 
+        $episode->videos()->upsert(
+            array_map(function ($video) use ($episode) {
+                $video['episode_id'] = $episode->id;
+                return $video;
+            }, $request->input('videos')),
+            [ 'url', 'episode_id', 'tube_id' ]
+        );
         $episode->save();
 
         return response()->json([ 'message' => 'Successfuly updated' ], JsonResponse::HTTP_OK);

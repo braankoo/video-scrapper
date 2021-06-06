@@ -15,6 +15,10 @@
                      :outlined="true"
                      ref="language-table"
             >
+                <template #cell(name)="data" class="text-center">
+                    <router-link :to="{name: 'Language Edit', params: {language : data.item.id}}">{{ data.item.name }}
+                    </router-link>
+                </template>
                 <template #cell(id)="data" class="text-center">
                     <b-button variant="danger" class="btn-sm" @click="removeLanguage(data.item.id)"><i
                         class="fa fa-window-close"></i></b-button>

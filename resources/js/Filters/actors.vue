@@ -62,8 +62,22 @@ export default {
             } else if (actorsType === '[object Object]') {
                 this.$emit('selected-actors', [actors].map(actor => actor.id));
             }
-
+        },
+        'preSelected': {
+            deep: true,
+            handler(val) {
+                this.actors.selected = val;
+            }
         }
+    },
+    beforeMount() {
+        this.$http.get('/api/actor', {
+            params: {
+                search: ''
+            }
+        }).then((response) => {
+            this.actors.loaded = response.data.data;
+        });
     }
 }
 </script>

@@ -88,7 +88,11 @@ export default {
                         {
                             href: '/admin/episode/create',
                             title: 'Add Episode'
-                        }
+                        },
+                        {
+                            href: '/admin/episode/stats',
+                            title: 'Stats'
+                        },
                     ]
                 },
                 {

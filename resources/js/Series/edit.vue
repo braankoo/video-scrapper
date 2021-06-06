@@ -1,8 +1,8 @@
 <template>
-    <div id="create-language">
-        <b-card header="New language">
+    <div id="edit-series">
+        <b-card header="Edit Series">
             <b-form-group
-                label="language name"
+                label="Series name"
                 label-cols-sm="4"
                 content-cols-sm="8"
                 label-cols-lg="3"
@@ -12,17 +12,16 @@
                 :invalid-feedback="response.name.feedback"
             >
                 <b-input
-                    id="language"
-                    name="language"
-                    @keyup.enter="createLanguage"
-                    v-model="language.name"
+                    id="series"
+                    name="series"
+                    @keyup.enter="updateSeries"
+                    v-model="series.name"
                     :state="response.name.state"
                 />
             </b-form-group>
             <template #footer>
-                <b-button :disabled="language.name === ''" variant="success" class="pull-right" @click="createLanguage">
-                    Create
-                    New
+                <b-button :disabled="series.name === ''" variant="success" class="pull-right" @click="updateSeries">
+                    Update Details
                 </b-button>
             </template>
         </b-card>
@@ -31,10 +30,10 @@
 
 <script>
 export default {
-    name: "languageCreate",
+    name: "SeriesEdit",
     data() {
         return {
-            language: {
+            series: {
                 name: ''
             },
             response: {
@@ -46,19 +45,16 @@ export default {
         }
     },
     methods: {
-        createLanguage() {
-            if (this.language.name !== '') {
-                this.$http.post('/api/language', {
-                    ...this.language
+        updateSeries() {
+            if (this.series.name !== '') {
+                this.$http.patch(`/api/series/${this.$route.params.series}`, {
+                    ...this.series
                 }).then(() => {
                     this.response.name.state = true;
-                    setTimeout(() => {
-                        this.language.name = '';
-                        this.response.name.state = null;
-                    }, 1300);
 
                 }).catch((error) => {
                     const errors = error.response.data.errors;
+
                     if (error.response.status === 422) {
                         for (let error in errors) {
                             if (errors.hasOwnProperty(error)) {
@@ -73,14 +69,22 @@ export default {
 
         }
     },
+    beforeMount() {
+        this.$http.get(`/api/series/${this.$route.params.series}`).then((response) => {
+            this.series.name = response.data.name;
+        }).catch((err) => {
+            console.log(err);
+        });
+    },
     watch: {
-        'language.name': function (newVal) {
+        'series.name': function () {
             if (this.response.name.state || !this.response.name.state) {
                 this.response.name.state = null;
                 this.response.name.feedback = '';
             }
         }
-    }
+    },
+
 }
 </script>
 

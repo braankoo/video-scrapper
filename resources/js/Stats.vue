@@ -36,13 +36,16 @@
         >
             <template #thead-top="data">
                 <b-tr>
-                    <b-th>Total</b-th>
+                    <b-th colspan="2">Total</b-th>
                     <b-th v-for="date in total" v-bind:key="total.date">{{ format(date) }}</b-th>
                 </b-tr>
             </template>
             <template #cell()="data">
-                <template v-if="data.field.key !== 'episode'">
+                <template v-if="!['episode','series'].includes(data.field.key)">
                     {{ format(data.item[data.field.key]) }}
+                </template>
+                <template v-else-if="data.field.key === 'series'">
+                    {{ data.item.series }}
                 </template>
                 <template v-else>
                     {{ data.item.episode }}
@@ -159,16 +162,30 @@ export default {
                         filter: ctx.filter
                     }
                 });
+
                 const tableData = [];
-                for (const episode in response.data.data.episodes) {
+                console.log(response.data);
+                for (const series in response.data.data.series) {
                     const data = {};
-                    data.episode = episode;
-                    for (const v of response.data.data.episodes[episode]) {
-                        data[v.date] = v.views;
+                    data.series = series;
+                    for (const episode in response.data.data.series[series]) {
+                        data.episode = episode;
+                        for (const v of response.data.data.series[series][episode]) {
+                            data[v.date] = v.views;
+                        }
                     }
                     tableData.push(data);
                 }
                 console.log(tableData);
+
+                // for (const episode in response.data.data.episodes) {
+                //     const data = {};
+                //     data.episode = episode;
+                //     for (const v of response.data.data.episodes[episode]) {
+                //         data[v.date] = v.views;
+                //     }
+                //     tableData.push(data);
+                // }
                 this.totalRows = response.data.total;
                 this.perPage = response.data.per_page;
 

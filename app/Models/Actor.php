@@ -27,4 +27,16 @@ class Actor extends Model {
     use HasFactory;
 
     protected $hidden = [ 'pivot', 'created_at', 'updated_at' ];
+
+
+    protected $with = [ 'country' ];
+
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function country(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
 }

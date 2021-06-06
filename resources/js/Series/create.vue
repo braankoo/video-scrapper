@@ -52,6 +52,11 @@ export default {
                     ...this.series
                 }).then(() => {
                     this.response.name.state = true;
+                    setTimeout(() => {
+                        this.series.name = '';
+                        this.response.name.state = null;
+                        this.response.name.feedback = '';
+                    }, 1300);
 
                 }).catch((error) => {
                     const errors = error.response.data.errors;
