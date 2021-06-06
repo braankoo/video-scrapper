@@ -30,6 +30,7 @@ Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, '
 Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
 
 
+Route::get("/series/{series}/episode/{episode}", [ \App\Http\Controllers\EpisodeController::class, 'singleStats' ]);
 
 Route::apiResource('series.episode', \App\Http\Controllers\EpisodeController::class)->except([ 'store' ]);
 

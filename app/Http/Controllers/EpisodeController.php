@@ -62,6 +62,30 @@ class EpisodeController extends Controller {
             , JsonResponse::HTTP_OK);
     }
 
+
+    /**
+     * @param \App\Models\Series $series
+     * @param \App\Models\Episode $episode
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function singleStats(Series $series, Episode $episode, Request $request): JsonResponse
+    {
+        $filters = json_decode($request->input('filter'));
+
+        $query = $episode->videos()->select(
+            [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
+            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
+
+        $query = $this->dateRangeFilter($query, $filters->date);
+
+        return response()->json(
+            $query->groupBy('videos.id')
+                ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'videos.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
+                ->paginate('10', [ '*' ], 'page', $request->input('page'))
+
+            , JsonResponse::HTTP_OK);
+    }
     /**
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
@@ -105,29 +129,16 @@ class EpisodeController extends Controller {
     }
 
 
-    public function show(Episode $episode)
+    /**
+     * @param \App\Models\Episode $episode
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Episode $episode): JsonResponse
     {
 
         return response()->json($episode->load([ 'videos:id,episode_id,url,tube_id,created_at', 'language:id,name', 'actors:id,name', 'series:id,name' ]), JsonResponse::HTTP_OK);
     }
 
-//    public function stats(Series $series, Episode $episode, Request $request): JsonResponse
-//    {
-//        $filters = json_decode($request->input('filter'));
-//
-//        $query = $episode->videos()->select(
-//            [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
-//            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
-//
-//        $query = $this->dateRangeFilter($query, $filters->date);
-//
-//        return response()->json(
-//            $query->groupBy('videos.id')
-//                ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'videos.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
-//                ->paginate('10', [ '*' ], 'page', $request->input('page'))
-//
-//            , JsonResponse::HTTP_OK);
-//    }
 
     /**
      * Update the specified resource in storage.
@@ -164,6 +175,7 @@ class EpisodeController extends Controller {
         $episode->videos()->upsert(
             array_map(function ($video) use ($episode) {
                 $video['episode_id'] = $episode->id;
+
                 return $video;
             }, $request->input('videos')),
             [ 'url', 'episode_id', 'tube_id' ]
