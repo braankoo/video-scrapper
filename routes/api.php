@@ -26,8 +26,9 @@ Route::get('/series/{series}/stats', [ \App\Http\Controllers\SeriesController::c
 Route::apiResource('language', \App\Http\Controllers\LanguageController::class);
 
 
-Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
 Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, 'stats' ]);
+Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
+
 
 
 Route::apiResource('series.episode', \App\Http\Controllers\EpisodeController::class)->except([ 'store' ]);
