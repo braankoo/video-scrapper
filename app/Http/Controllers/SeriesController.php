@@ -67,7 +67,7 @@ class SeriesController extends Controller {
             ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
 
 
-        $query = $this->languageFilter($query, $filters->language);
+        $query = $this->languageFilter($query, $filters->languages);
 
         $query = $this->dateRangeFilter($query, $filters->date);
 

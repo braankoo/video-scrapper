@@ -12,7 +12,7 @@
                     <date @selected-date="filters.date = $event"/>
                 </b-col>
             </b-row>
-            <b-table :api-url="`/api/series/${$route.params.series}`"
+            <b-table :api-url="`/api/series/${$route.params.series}/stats`"
                      id="Episodes"
                      :busy.sync="isBusy"
                      :items="getEpisodes"
