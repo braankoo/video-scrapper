@@ -33,8 +33,6 @@ Route::get('/episode/stats', [ \App\Http\Controllers\EpisodeController::class, '
 Route::apiResource('episode', \App\Http\Controllers\EpisodeController::class);
 
 
-Route::apiResource('series.episode', \App\Http\Controllers\EpisodeController::class)->except([ 'store' ]);
-
 Route::get('/video', [ App\Http\Controllers\VideoController::class, 'index' ]);
 Route::post('/video/fetch/{video}', [ App\Http\Controllers\VideoController::class, 'fetch' ]);
 Route::delete('/video/{video}', [ App\Http\Controllers\VideoController::class, 'destroy' ]);
