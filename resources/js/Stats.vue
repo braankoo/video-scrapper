@@ -39,6 +39,10 @@
                     <b-th colspan="2">Total</b-th>
                     <b-th v-for="date in total" v-bind:key="total.date">{{ format(date) }}</b-th>
                 </b-tr>
+                <b-tr>
+                    <b-th colspan="2">Difference</b-th>
+                    <b-th v-for="date in difference" v-bind:key="difference.date">{{ format(date) }}</b-th>
+                </b-tr>
             </template>
             <template #cell()="data">
                 <template v-if="!['episode','series'].includes(data.field.key)">
@@ -136,6 +140,7 @@ export default {
             keys: [],
             total: [],
             swapped: false,
+            difference: {},
             filters: {
                 series: [],
                 actors: [],
@@ -190,6 +195,19 @@ export default {
                 this.perPage = response.data.per_page;
 
                 this.total = response.data.data.total;
+
+                const days = Object.keys(this.total);
+                const difference = {};
+
+                for (let i = 0; i < days.length; i++) {
+                    if (i === 0) {
+                        difference[days[i]] = this.total[days[i]];
+                    } else if (i > 0) {
+
+                        difference[days[i]] = this.total[days[i]] - this.total[days[i - 1]];
+                    }
+                }
+                this.difference = difference;
 
 
                 return tableData;

@@ -57,21 +57,21 @@ class StatsController extends Controller {
 
         if (!empty($filters->series))
         {
-            $pagination->whereHas('episode', function ($query) use ($filters) {
+
+            $pagination->whereHas('series', function ($query) use ($filters) {
                 return $query->whereIn('series_id', $filters->series);
             });
         }
         if (!empty($filters->actors))
         {
-            $pagination->whereHas('episode.actors', function ($query) use ($filters) {
+            $pagination->whereHas('actors', function ($query) use ($filters) {
                 return $query->whereIn('actor_id', $filters->actors);
             });
         }
         if (!empty($filters->languages))
         {
-            $pagination->whereHas('episode', function ($query) use ($filters) {
-                return $query->whereIn('language_id', $filters->language);
-            });
+            $pagination->whereIn('language_id', $filters->language);
+
         }
 
         $pagination = $pagination->paginate();
