@@ -201,7 +201,9 @@ export default {
 
                 for (let i = 0; i < days.length; i++) {
                     if (i === 0) {
-                        difference[days[i]] = this.total[days[i]];
+                        difference[days[i]] = 0;
+                    } else if (this.total[days[i]] === 0) {
+                        difference[days[i]] = 0;
                     } else if (i > 0) {
 
                         difference[days[i]] = this.total[days[i]] - this.total[days[i - 1]];
