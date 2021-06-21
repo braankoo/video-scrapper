@@ -71,12 +71,12 @@ class SeriesController extends Controller {
         $query = $this->languageFilter($query, $filters->languages);
 
 
-        if (!empty($date->end_date))
+        if (!empty($filters->end_date))
         {
-            $query->whereDate('stats.created_at', '=', $date->end_date);
+            $query->whereDate('stats.created_at', '=', $filters->end_date);
         } else if (!empty($date->start_date))
         {
-            $query->whereDate('stats.created_at', '=', $date->start_date);
+            $query->whereDate('stats.created_at', '=', $filters->start_date);
         }
 
         return response()->json(
