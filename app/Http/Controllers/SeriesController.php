@@ -56,7 +56,7 @@ class SeriesController extends Controller {
         $subQuery->groupBy('episode_id');
 
         $query = $series->episodes()->select(
-            [ 'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
+            [ 'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('views') ])
             ->join('languages', 'episodes.language_id', '=', 'languages.id')
             ->joinSub(
                 $subQuery,
