@@ -56,7 +56,8 @@ class SeriesController extends Controller {
         $subQuery->groupBy('episode_id');
 
         $query = $series->episodes()->select(
-            [ 'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('views') ])
+            [
+                'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
             ->join('languages', 'episodes.language_id', '=', 'languages.id')
             ->joinSub(
                 $subQuery,
@@ -70,15 +71,12 @@ class SeriesController extends Controller {
         $query = $this->languageFilter($query, $filters->languages);
 
 
-        if (!empty($date->start_date) && !empty($date->end_date))
+        if (!empty($date->end_date))
         {
             $query->whereDate('stats.created_at', '=', $date->end_date);
-        } else if (!empty($date->start_date) && empty($date->end_date))
+        } else if (!empty($date->start_date))
         {
             $query->whereDate('stats.created_at', '=', $date->start_date);
-        } else if (!empty($date->end_date))
-        {
-            $query->whereDate('stats.created_at', '=', $date->end_date);
         }
 
         return response()->json(
