@@ -69,7 +69,17 @@ class SeriesController extends Controller {
 
         $query = $this->languageFilter($query, $filters->languages);
 
-        $query = $this->dateRangeFilter($query, $filters->date);
+
+        if (!empty($date->start_date) && !empty($date->end_date))
+        {
+            $query->whereDate('stats.created_at', '=', $date->end_date);
+        } else if (!empty($date->start_date) && empty($date->end_date))
+        {
+            $query->whereDate('stats.created_at', '=', $date->start_date);
+        } else if (!empty($date->end_date))
+        {
+            $query->whereDate('stats.created_at', '=', $date->end_date);
+        }
 
         return response()->json(
             $query->groupBy('episodes.id')

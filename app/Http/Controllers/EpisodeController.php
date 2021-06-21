@@ -33,8 +33,7 @@ class EpisodeController extends Controller {
         }
         $subQuery->groupBy('episode_id');
 
-        $query = Episode::select(
-            [ 'episodes.name as episodes.name', 'series.id as series_id', 'episodes.id as id', 'series.name as series.name', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
+        $query = Episode::select([ 'episodes.name as episodes.name', 'series.id as series_id', 'episodes.id as id', 'series.name as series.name', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
             ->join('series', 'episodes.series_id', '=', 'series.id')
             ->join('languages', 'episodes.language_id', '=', 'languages.id')
             ->joinSub(
@@ -86,6 +85,7 @@ class EpisodeController extends Controller {
 
             , JsonResponse::HTTP_OK);
     }
+
     /**
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator

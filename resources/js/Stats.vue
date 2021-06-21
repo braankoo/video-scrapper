@@ -169,7 +169,7 @@ export default {
                 });
 
                 const tableData = [];
-                console.log(response.data);
+                
                 for (const series in response.data.data.series) {
                     for (const episode in response.data.data.series[series]) {
                         const data = {};
@@ -181,16 +181,8 @@ export default {
                         tableData.push(data);
                     }
                 }
-                console.log(tableData);
 
-                // for (const episode in response.data.data.episodes) {
-                //     const data = {};
-                //     data.episode = episode;
-                //     for (const v of response.data.data.episodes[episode]) {
-                //         data[v.date] = v.views;
-                //     }
-                //     tableData.push(data);
-                // }
+
                 this.totalRows = response.data.total;
                 this.perPage = response.data.per_page;
 
