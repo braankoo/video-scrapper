@@ -72,7 +72,7 @@ class SeriesController extends Controller {
         if (!empty($filters->date->end_date))
         {
             $query->whereDate('stats.created_at', '=', $filters->date->end_date);
-        } else if (!empty($filters->date->start_date))
+        } else
         {
             $query->whereDate('stats.created_at', '=', $filters->date->start_date);
         }
