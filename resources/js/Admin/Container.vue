@@ -37,7 +37,7 @@ export default {
                 },
                 {
                     title: 'Home',
-                    href: '/home',
+                    href: '/admin/home',
                     icon: 'fa fa-columns'
                 },
                 {
