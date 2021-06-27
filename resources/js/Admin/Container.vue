@@ -36,6 +36,11 @@ export default {
                     hiddenOnCollapse: true
                 },
                 {
+                    title: 'Home',
+                    href: '/home',
+                    icon: 'fa fa-columns'
+                },
+                {
                     title: 'Actors',
                     icon: 'fa fa-user-circle',
                     child: [

@@ -19,6 +19,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
+//Home
+Route::get('/chart/views/daily', [ \App\Http\Controllers\HomeController::class, 'viewsDailyChart' ]);
+Route::get('/chart/views/monthly', [ \App\Http\Controllers\HomeController::class, 'viewsMonthlyChart' ]);
+Route::get('/series/top10', [ \App\Http\Controllers\HomeController::class, 'topSeries' ]);
+Route::get('/episode/top10', [ \App\Http\Controllers\HomeController::class, 'topEpisodes' ]);
+Route::get('/actors/top10', [ \App\Http\Controllers\HomeController::class, 'topActors' ]);
+
+
 Route::apiResource('actor', \App\Http\Controllers\ActorController::class);
 
 

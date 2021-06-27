@@ -22,6 +22,7 @@ import EpisodeEdit from './Episode/edit';
 
 
 import Stats from "./Stats";
+import Home from "./Home";
 
 
 const router = new VueRouter(
@@ -44,6 +45,10 @@ const router = new VueRouter(
                     requiresAuth: true
                 },
                 children: [
+                    {
+                        path: 'home',
+                        component: Home
+                    },
                     {
                         path: 'actor',
                         component: ActorIndex
