@@ -42,7 +42,7 @@
                 <template #thead-top="data">
                     <b-tr>
                         <b-th>Total</b-th>
-                        <b-th>{{ top.series.total }}</b-th>
+                        <b-th>{{ formatter().format(top.series.total) }}</b-th>
                     </b-tr>
                 </template>
                 <template #cell(views)="data">
@@ -75,7 +75,7 @@
                 <template #thead-top="data">
                     <b-tr>
                         <b-th>Total</b-th>
-                        <b-th>{{ top.episodes.total }}</b-th>
+                        <b-th>{{ formatter().format(top.episodes.total) }}</b-th>
                     </b-tr>
                 </template>
                 <template #cell(views)="data">
