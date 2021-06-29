@@ -23,16 +23,9 @@
                 <b-col>
                     <b-form-datepicker id="series-start-date"
                                        placeholder="Start Date"
-                                       v-model="top.series.range.startDate"
+                                       v-model="top.series.date"
                                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
                 </b-col>
-                <b-col>
-                    <b-form-datepicker id="series-end-date"
-                                       placeholder="End Date"
-                                       v-model="top.series.range.endDate"
-                                       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
-                </b-col>
-
             </b-row>
             <hr>
             <b-table
@@ -44,7 +37,7 @@
                 :bordered="true"
                 :outlined="true"
                 :show-empty="true"
-                :filter="{startDate: top.series.range.startDate, endDate: top.series.range.endDate}"
+                :filter="{date: top.series.date}"
             >
                 <template #thead-top="data">
                     <b-tr>
@@ -80,7 +73,7 @@
                 :bordered="true"
                 :outlined="true"
                 :show-empty="true"
-                :filter="{startDate: top.episodes.range.startDate, endDate: top.episodes.range.endDate}"
+                :filter="{date: top.episodes.date}"
             >
                 <template #thead-top="data">
                     <b-tr>
@@ -96,22 +89,15 @@
                 <b-col>
                     <b-form-datepicker id="male-actor-start-date"
                                        placeholder="Start Date"
-                                       v-model="top.actors.male.range.startDate"
+                                       v-model="top.actors.male.date"
                                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
                 </b-col>
-                <b-col>
-                    <b-form-datepicker id="male-actor-end-date"
-                                       placeholder="End Date"
-                                       v-model="top.actors.male.range.endDate"
-                                       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
-                </b-col>
-
             </b-row>
             <hr>
             <b-table
                 api-url="/api/actors/top10"
                 :items="getActorsData"
-                :filter="{gender: 'MALE',startDate: top.actors.male.range.startDate, endDate: top.actors.male.range.endDate}"
+                :filter="{gender: 'MALE',date: top.actors.male.date}"
                 table-variant="light"
                 head-variant="light"
                 :striped="true"
@@ -127,22 +113,17 @@
                 <b-col>
                     <b-form-datepicker id="female-actor-start-date"
                                        placeholder="Start Date"
-                                       v-model="top.actors.female.range.startDate"
+                                       v-model="top.actors.female.date"
                                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
                 </b-col>
-                <b-col>
-                    <b-form-datepicker id="female-actor-end-date"
-                                       placeholder="End Date"
-                                       v-model="top.actors.female.range.endDate"
-                                       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
-                </b-col>
+
 
             </b-row>
             <hr>
             <b-table
                 api-url="/api/actors/top10"
                 :items="getActorsData"
-                :filter="{gender: 'FEMALE',startDate: top.actors.female.range.startDate, endDate: top.actors.female.range.endDate}"
+                :filter="{gender: 'FEMALE',date: top.actors.female.date}"
                 table-variant="light"
                 head-variant="light"
                 :striped="true"
@@ -182,30 +163,18 @@ export default {
             },
             top: {
                 series: {
-                    range: {
-                        startDate: '',
-                        endDate: '',
-                    },
+                    date: '',
                     total: 0
                 },
                 episodes: {
-                    range: {
-                        startDate: '',
-                        endDate: '',
-                    }
+                    date: '',
                 },
                 actors: {
                     male: {
-                        range: {
-                            startDate: '',
-                            endDate: '',
-                        }
+                        date: '',
                     },
                     female: {
-                        range: {
-                            startDate: '',
-                            endDate: '',
-                        }
+                        date: '',
                     }
                 }
             }
@@ -236,8 +205,8 @@ export default {
                     params: {
                         page: ctx.currentPage,
                         perPage: ctx.perPage,
-                        startDate: ctx.filter.startDate,
-                        endDate: ctx.filter.endDate,
+                        date: ctx.filter.date
+
                     }
                 });
                 this.top.series.total = response.data.total;
@@ -253,8 +222,7 @@ export default {
                     params: {
                         page: ctx.currentPage,
                         perPage: ctx.perPage,
-                        startDate: ctx.filter.startDate,
-                        endDate: ctx.filter.endDate,
+                        date: ctx.filter.date
                     }
                 });
                 this.top.episodes.total = response.data.total;
@@ -271,8 +239,7 @@ export default {
                         gender: ctx.filter.gender,
                         page: ctx.currentPage,
                         perPage: ctx.perPage,
-                        startDate: ctx.filter.startDate,
-                        endDate: ctx.filter.endDate
+                        date: ctx.filter.date
                     }
                 });
                 return response.data;

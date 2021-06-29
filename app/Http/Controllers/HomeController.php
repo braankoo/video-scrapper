@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -63,11 +64,11 @@ class HomeController extends Controller {
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
-            ->when(!empty($request->input('startDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('startDate'));
+            ->when(!empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', $request->input('date'));
             })
-            ->when(!empty($request->input('endDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '<=', $request->input('endDate'));
+            ->when(empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->groupBy('series.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
@@ -93,11 +94,11 @@ class HomeController extends Controller {
             ->selectRaw('episodes.name as episode, SUM(views) as views')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
-            ->when(!empty($request->input('startDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('startDate'));
+            ->when(!empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', $request->input('date'));
             })
-            ->when(!empty($request->input('endDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '<=', $request->input('endDate'));
+            ->when(empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->groupBy('episodes.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
@@ -126,11 +127,11 @@ class HomeController extends Controller {
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id')
             ->join('actors', 'episode_actor_pivot.actor_id', '=', 'actors.id')
-            ->when(!empty($request->input('startDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('startDate'));
+            ->when(!empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', $request->input('date'));
             })
-            ->when(!empty($request->input('endDate')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '<=', $request->input('endDate'));
+            ->when(empty($request->input('date')), function ($q) use ($request) {
+                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->where('actors.gender', '=', $request->input('gender'))
             ->groupBy('actors.id')
