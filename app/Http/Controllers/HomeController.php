@@ -70,6 +70,16 @@ class HomeController extends Controller {
             ->when(empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '=', Carbon::now());
             })
+            ->when(!empty($request->input('series')), function ($q) use ($request) {
+                $q->whereIn('series.id', $request->input('series'));
+            })
+            ->when(!empty($request->input('actors')), function ($q) use ($request) {
+                $q->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id');
+                $q->whereIn('episode_actor_pivot.actor_id', $request->input('actors'));
+            })
+            ->when(!empty($request->input('languages')), function ($q) use ($request) {
+                $q->whereIn('episodes.language_id', $request->input('languages'));
+            })
             ->groupBy('series.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
             ->take(10)
@@ -99,6 +109,16 @@ class HomeController extends Controller {
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '=', Carbon::now());
+            })
+            ->when(!empty($request->input('series')), function ($q) use ($request) {
+                $q->whereIn('episodes.series_id', $request->input('series'));
+            })
+            ->when(!empty($request->input('actors')), function ($q) use ($request) {
+                $q->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id');
+                $q->whereIn('episode_actor_pivot.actor_id', $request->input('actors'));
+            })
+            ->when(!empty($request->input('languages')), function ($q) use ($request) {
+                $q->whereIn('episodes.language_id', $request->input('languages'));
             })
             ->groupBy('episodes.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
@@ -133,12 +153,19 @@ class HomeController extends Controller {
             ->when(empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '=', Carbon::now());
             })
+            ->when(!empty($request->input('series')), function ($q) use ($request) {
+                $q->whereIn('episodes.series_id', $request->input('series'));
+            })
+            ->when(!empty($request->input('actors')), function ($q) use ($request) {
+                $q->whereIn('actors.id', $request->input('actors'));
+            })
+            ->when(!empty($request->input('languages')), function ($q) use ($request) {
+                $q->whereIn('episodes.language_id', $request->input('languages'));
+            })
             ->where('actors.gender', '=', $request->input('gender'))
             ->groupBy('actors.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
             ->take(10)
             ->get();
     }
-
-
 }
