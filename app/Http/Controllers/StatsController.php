@@ -74,7 +74,7 @@ class StatsController extends Controller {
 
         }
 
-        $pagination = $pagination->paginate();
+        $pagination = $pagination->paginate(20);
 
         $itemsTransformed = new Collection();
         foreach ( $pagination->items() as $item )
@@ -198,7 +198,7 @@ class StatsController extends Controller {
                 return $query->whereIn('language_id', $filters->language);
             });
         }
-        $pagination = $pagination->paginate();
+        $pagination = $pagination->paginate(20);
 
 
         $errors = [];

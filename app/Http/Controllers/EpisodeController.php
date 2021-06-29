@@ -87,7 +87,7 @@ class EpisodeController extends Controller {
         return response()->json(
             $query->groupBy('videos.id')
                 ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'videos.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
-                ->paginate('10', [ '*' ], 'page', $request->input('page'))
+                ->paginate('20', [ '*' ], 'page', $request->input('page'))
 
             , JsonResponse::HTTP_OK);
     }
@@ -98,7 +98,7 @@ class EpisodeController extends Controller {
      */
     public function index(Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return Episode::paginate(10, [ 'id', 'name' ]);
+        return Episode::paginate(20, [ 'id', 'name' ]);
     }
 
     /**

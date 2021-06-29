@@ -18,10 +18,10 @@ class ActorController extends Controller {
     {
         if ($request->has('search'))
         {
-            return response()->json(Actor::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(10, [ '*' ]));
+            return response()->json(Actor::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(20, [ '*' ]));
         }
 
-        return response()->json(Actor::paginate(10, [ 'id', 'name' ], 'page', $request->input('page')), 200);
+        return response()->json(Actor::paginate(20, [ 'id', 'name' ], 'page', $request->input('page')), 200);
     }
 
     /**

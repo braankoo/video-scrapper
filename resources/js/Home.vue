@@ -45,6 +45,9 @@
                         <b-th>{{ top.series.total }}</b-th>
                     </b-tr>
                 </template>
+                <template #cell(views)="data">
+                    {{ formatter().format(data.item.views) }}
+                </template>
             </b-table>
         </b-card>
         <hr>
@@ -53,13 +56,7 @@
                 <b-col>
                     <b-form-datepicker id="episodes-start-date"
                                        placeholder="Start Date"
-                                       v-model="top.episodes.range.startDate"
-                                       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
-                </b-col>
-                <b-col>
-                    <b-form-datepicker id="episodes-end-date"
-                                       placeholder="End Date"
-                                       v-model="top.episodes.range.endDate"
+                                       v-model="top.episodes.date"
                                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
                 </b-col>
             </b-row>
@@ -80,6 +77,9 @@
                         <b-th>Total</b-th>
                         <b-th>{{ top.episodes.total }}</b-th>
                     </b-tr>
+                </template>
+                <template #cell(views)="data">
+                    {{ formatter().format(data.item.views) }}
                 </template>
             </b-table>
         </b-card>
@@ -105,7 +105,11 @@
                 :outlined="true"
                 :show-empty="true"
 
-            />
+            >
+                <template #cell(views)="data">
+                    {{ formatter().format(data.item.views) }}
+                </template>
+            </b-table>
         </b-card>
         <hr>
         <b-card header="Top 10 Female Actors">
@@ -116,8 +120,6 @@
                                        v-model="top.actors.female.date"
                                        :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
                 </b-col>
-
-
             </b-row>
             <hr>
             <b-table
@@ -130,7 +132,11 @@
                 :bordered="true"
                 :outlined="true"
                 :show-empty="true"
-            />
+            >
+                <template #cell(views)="data">
+                    {{ formatter().format(data.item.views) }}
+                </template>
+            </b-table>
         </b-card>
         <hr>
     </div>
@@ -177,6 +183,12 @@ export default {
                         date: '',
                     }
                 }
+            },
+            formatter() {
+                return new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                });
             }
         }
     },

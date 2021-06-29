@@ -135,7 +135,7 @@ export default {
         return {
             currentPage: 1,
             totalRows: 1,
-            perPage: 5,
+            perPage: 20,
             isBusy: false,
             keys: [],
             total: [],
@@ -169,7 +169,7 @@ export default {
                 });
 
                 const tableData = [];
-                
+
                 for (const series in response.data.data.series) {
                     for (const episode in response.data.data.series[series]) {
                         const data = {};

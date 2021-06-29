@@ -73,7 +73,7 @@ export default {
         return {
             currentPage: 1,
             totalRows: 1,
-            perPage: 5,
+            perPage: 20,
             isBusy: false,
             filters: {
                 series: [],

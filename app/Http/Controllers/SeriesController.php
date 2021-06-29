@@ -24,7 +24,7 @@ class SeriesController extends Controller {
             return response()->json(Series::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(10, [ '*' ]));
         }
 
-        return response()->json(Series::withCount('episodes')->paginate(10, [ 'id', 'name' ], 'page', $request->input('page')), JsonResponse::HTTP_OK);
+        return response()->json(Series::withCount('episodes')->paginate(20, [ 'id', 'name' ], 'page', $request->input('page')), JsonResponse::HTTP_OK);
     }
 
 
@@ -80,7 +80,7 @@ class SeriesController extends Controller {
         return response()->json(
             $query->groupBy('episodes.id')
                 ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'episodes.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
-                ->paginate('10', [ '*' ], 'page', $request->input('page'))
+                ->paginate('20', [ '*' ], 'page', $request->input('page'))
 
             , JsonResponse::HTTP_OK);
     }
