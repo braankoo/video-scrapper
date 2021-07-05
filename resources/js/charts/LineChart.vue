@@ -1,63 +1,53 @@
 <script>
-import {Line} from 'vue-chartjs'
+import {Line, mixins} from 'vue-chartjs'
+
+const {reactiveProp} = mixins
+
 
 export default {
     extends: Line,
+    mixins: [reactiveProp],
     props: {
-        views: {
-            type: Array,
-            default: []
-        },
-        dates: {
-            type: Array,
-            default: []
-        }
-    },
-    data() {
-        return {
-            chartdata: {
-                labels: this.dates,
-                datasets: [
-                    {
-                        label: 'Views',
-                        borderColor: '#249EBF',
-                        pointBackgroundColor: 'white',
-                        borderWidth: 1,
-                        pointBorderColor: '#249EBF',
-                        backgroundColor: 'transparent',
-                        data: this.views
-                    }
-                ]
-            },
-
-
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        },
-                        gridLines: {
-                            display: true
-                        }
-                    }],
-                    xAxes: [{
-                        gridLines: {
-                            display: false
-                        }
-                    }]
-                },
-                legend: {
-                    display: true
-                },
-                responsive: true,
-                maintainAspectRatio: false
+        options: {
+            type: Object,
+            default: function () {
+                return {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            },
+                            gridLines: {
+                                display: true
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            }
+                        }]
+                    },
+                    legend: {
+                        display: true
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
             }
+        },
+        updated: {
+            type: Number,
+            required: true
+        }
+    },
+    mounted() {
+        this.renderChart(this.chartData, this.options)
+    },
+    watch: {
+        updated() {
+            this.renderChart(this.chartData, this.options);
         }
     },
 
-    mounted() {
-        this.renderChart(this.chartdata, this.options)
-    }
 }
 </script>

@@ -1,11 +1,13 @@
 <template>
     <div>
         <b-card header="Total Views">
+            <series @selected-series="total.series = $event"/>
+            <hr>
             <line-chart
                 :styles="{position: 'relative',height: '300px'}"
-                :dates="chart.daily.dates"
-                :views="chart.daily.views"
                 v-if="chart.daily.loaded"
+                :chart-data="chart.daily.data"
+                :updated="chart.daily.updated"
             />
         </b-card>
         <hr>
@@ -203,14 +205,17 @@ export default {
             chart: {
                 daily: {
                     loaded: false,
-                    views: [],
-                    dates: []
+                    data: {},
+                    updated: 0
                 },
                 monthly: {
                     loaded: false,
                     views: [],
                     dates: []
                 }
+            },
+            total: {
+                series: []
             },
             top: {
                 series: {
@@ -251,9 +256,43 @@ export default {
     },
     methods: {
         getDailyViews() {
-            this.$http.get(`/api/chart/views/daily`,).then((res) => {
-                this.chart.daily.views = res.data.map(res => res.views);
-                this.chart.daily.dates = res.data.map(res => res.date);
+
+            this.$http.get(`/api/chart/views/daily`, {
+                params: {
+                    series: this.total.series
+                }
+            }).then((res) => {
+
+                if (res.data.length > 0) {
+                    this.chart.daily.data.datasets = [
+                        {
+                            label: 'Views',
+                            borderColor: '#249EBF',
+                            pointBackgroundColor: 'white',
+                            borderWidth: 1,
+                            pointBorderColor: '#249EBF',
+                            backgroundColor: 'transparent',
+                            data: res.data.map(res => res.views)
+                        }
+                    ];
+                    this.chart.daily.data.labels = res.data.map(res => res.date);
+                    this.chart.daily.updated++;
+                } else {
+                    this.chart.daily.data.datasets = [
+                        {
+                            label: 'Views',
+                            borderColor: '#249EBF',
+                            pointBackgroundColor: 'white',
+                            borderWidth: 1,
+                            pointBorderColor: '#249EBF',
+                            backgroundColor: 'transparent',
+                            data: []
+                        }
+                    ];
+                    this.chart.daily.data.labels = []
+                    this.chart.daily.updated++;
+                }
+
                 this.chart.daily.loaded = true;
             }).catch((err) => {
                 console.log(err);
@@ -330,6 +369,14 @@ export default {
     mounted() {
         this.getDailyViews();
         this.getMonthlyViews();
+    },
+    watch: {
+        'total.series': {
+            deep: true,
+            handler: function (val) {
+                this.getDailyViews();
+            }
+        }
     }
 }
 </script>

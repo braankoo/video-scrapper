@@ -18,7 +18,12 @@ class HomeController extends Controller {
     {
 
         return \DB::table('stats')
-            ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m-%d') as date")
+            ->selectRaw("SUM(views) as views, DATE_FORMAT(stats.created_at, '%Y-%m-%d') as date")
+            ->when(!empty($request->input('series')), function ($q) use ($request) {
+                $q->join('videos', 'stats.video_id', '=', 'videos.id');
+                $q->join('episodes', 'videos.episode_id', '=', 'episodes.id');
+                $q->whereIn('episodes.series_id', $request->input('series'));
+            })
             ->groupBy(DB::raw("DATE_FORMAT(created_at, '%Y-%m-%d')"))
             ->get();
     }
@@ -31,21 +36,87 @@ class HomeController extends Controller {
     {
 
         $data = \DB::table('stats')
-            ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m') as date")
-            ->groupBy(DB::raw("DATE_FORMAT(created_at, '%Y-%m')"))
+            ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m-%d') as date")
+            ->where(DB::raw('DAY(created_at)'), '=', '1')
+            ->groupBy(DB::raw('DATE_FORMAT(created_at ,"%Y-%m-%d")'))
             ->get();
+
         $transformedData = [];
+
         for ( $i = 0; $i < count($data); $i ++ )
         {
+
             if ($i == 0)
             {
-                continue;
+                $not1st = \DB::table('stats')
+                    ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m-%d') as date")
+                    ->whereDate('created_at', '<', $data[$i]->date)
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at ,"%Y-%m-%d")'))
+                    ->get();
+
+                if ($not1st->count())
+                {
+                    $transformedData[] = [
+                        'views' => $data[$i]->views - $not1st->first()->views,
+                        'date'  => $data[$i]->date
+                    ];
+                } else
+                {
+                    $transformedData[] = [
+                        'views' => $data[$i]->views,
+                        'date'  => $data[$i]->date
+                    ];
+                }
+
+                if ($i == count($data) - 1)
+                {
+                    $afterCurrent = \DB::table('stats')
+                        ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m-%d') as date")
+                        ->whereDate('created_at', '>', $data[$i]->date)
+                        ->groupBy(DB::raw('DATE_FORMAT(created_at ,"%Y-%m-%d")'))
+                        ->get();
+
+                    if ($afterCurrent->count())
+                    {
+                        $transformedData[] = [
+                            'views' => $afterCurrent->last()->views - $data[$i]->views,
+                            'date'  => $afterCurrent->last()->date
+                        ];
+                    }
+                }
+
+
+            } else if ($i == count($data) - 1)
+            {
+
+                $transformedData[] = [
+                    'views' => $data[$i]->views - $data[$i - 1]->views,
+                    'date'  => $data[$i]->date
+                ];
+
+                $afterCurrent = \DB::table('stats')
+                    ->selectRaw("SUM(views) as views, DATE_FORMAT(created_at, '%Y-%m-%d') as date")
+                    ->whereDate('created_at', '>', $data[$i]->date)
+                    ->groupBy(DB::raw('DATE_FORMAT(created_at ,"%Y-%m-%d")'))
+                    ->get();
+
+                if ($afterCurrent->count())
+                {
+                    $transformedData[] = [
+                        'views' => $afterCurrent->last()->views - $data[$i]->views,
+                        'date'  => $afterCurrent->last()->date
+                    ];
+                }
             } else
             {
                 $transformedData[] = [
                     'views' => $data[$i]->views - $data[$i - 1]->views,
                     'date'  => $data[$i]->date
                 ];
+            }
+            if ($i == count($data) - 1)
+            {
+                break;
             }
         }
 
@@ -65,7 +136,7 @@ class HomeController extends Controller {
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
             ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', $request->input('date'));
+                $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '=', Carbon::now());
@@ -105,10 +176,10 @@ class HomeController extends Controller {
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', $request->input('date'));
+                $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', Carbon::now());
+                $q->whereDate('stats.created_at', '>=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
@@ -148,7 +219,7 @@ class HomeController extends Controller {
             ->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id')
             ->join('actors', 'episode_actor_pivot.actor_id', '=', 'actors.id')
             ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', $request->input('date'));
+                $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '=', Carbon::now());
@@ -165,7 +236,6 @@ class HomeController extends Controller {
             ->where('actors.gender', '=', $request->input('gender'))
             ->groupBy('actors.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->take(10)
-            ->get();
+            ->take(10);
     }
 }
