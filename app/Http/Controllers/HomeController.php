@@ -236,6 +236,6 @@ class HomeController extends Controller {
             ->where('actors.gender', '=', $request->input('gender'))
             ->groupBy('actors.id')
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->take(10);
+            ->take(10)->get();
     }
 }
