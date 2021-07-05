@@ -139,7 +139,7 @@ class HomeController extends Controller {
                 $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', Carbon::now());
+//                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('series.id', $request->input('series'));
@@ -179,7 +179,7 @@ class HomeController extends Controller {
                 $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', Carbon::now());
+//                $q->whereDate('stats.created_at', '>=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
@@ -222,7 +222,7 @@ class HomeController extends Controller {
                 $q->whereDate('stats.created_at', '>=', $request->input('date'));
             })
             ->when(empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', Carbon::now());
+//                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
