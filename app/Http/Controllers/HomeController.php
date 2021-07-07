@@ -132,7 +132,7 @@ class HomeController extends Controller {
     public function topSeries(Request $request): JsonResponse
     {
         $startData = DB::table('stats')
-            ->selectRaw('series.name as series, SUM(views) as views')
+            ->selectRaw('series.id,series.name as series, SUM(views) as views')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
@@ -164,7 +164,7 @@ class HomeController extends Controller {
 
 
         $endData = DB::table('stats')
-            ->selectRaw('series.name as series, SUM(views) as views')
+            ->selectRaw('series.id,series.name as series, SUM(views) as views')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
@@ -186,10 +186,11 @@ class HomeController extends Controller {
         $data = new Collection();
 
         $endData->each(function ($row) use (&$data, $startData) {
-            if (!is_null($startData->firstWhere('series', '=', $row->series)))
+            if (!is_null($startData->firstWhere('id', '=', $row->id)))
             {
-                $data->push([ 'series' => $row->series, 'views' => $row->views - $startData->firstWhere('series', '=', $row->series)->views ]);
+                $data->push([ 'series' => $row->series, 'views' => $row->views - $startData->firstWhere('id', '=', $row->id)->views ]);
             }
+
 
         });
         $data = $data->sortByDesc('views')->take(10);
