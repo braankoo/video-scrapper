@@ -186,7 +186,11 @@ class HomeController extends Controller {
         $data = new Collection();
 
         $endData->each(function ($row) use (&$data, $startData) {
-            $data->push([ 'series' => $row->series, 'views' => $row->views - $startData->firstWhere('series', '=', $row->series)->views ]);
+            if (!is_null($startData->firstWhere('series', '=', $row->series)))
+            {
+                $data->push([ 'series' => $row->series, 'views' => $row->views - $startData->firstWhere('series', '=', $row->series)->views ]);
+            }
+
         });
         $data = $data->sortByDesc('views')->take(10);
 
