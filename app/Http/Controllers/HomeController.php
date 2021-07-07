@@ -131,22 +131,11 @@ class HomeController extends Controller {
      */
     public function topSeries(Request $request): JsonResponse
     {
-        $startData = DB::table('stats')
-            ->selectRaw('series.id,series.name as series, SUM(views) as views')
+        $stats = DB::table('stats')
+            ->selectRaw('series.id,series.name as series, SUM(views) as views, date(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
-            ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('date'));
-            })
-            ->when(empty($request->input('date')), function ($q) use ($request) {
-                $date = DB::table('stats')->select('created_at')->whereRaw("created_at >= DATE_FORMAT(NOW() ,'%Y-01-01')")->first();
-                $q->whereDate('stats.created_at', '=', Carbon::parse($date->created_at)->format('Y-m-d'));
-            })
-            ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', $request->input('date'));
-
-            })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('series.id', $request->input('series'));
             })
@@ -157,47 +146,33 @@ class HomeController extends Controller {
             ->when(!empty($request->input('languages')), function ($q) use ($request) {
                 $q->whereIn('episodes.language_id', $request->input('languages'));
             })
-            ->groupBy('series.id')
+            ->groupBy([ 'series.id', DB::raw('DATE(stats.created_at)') ])
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->get();
-        $date = DB::table('stats')->select('created_at')->orderBy('created_at', 'DESC')->first();
+            ->get()->groupBy([ 'series', 'created_at' ]);
 
 
-        $endData = DB::table('stats')
-            ->selectRaw('series.id,series.name as series, SUM(views) as views')
-            ->join('videos', 'videos.id', 'stats.video_id')
-            ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
-            ->join('series', 'episodes.series_id', '=', 'series.id')
-            ->whereDate('stats.created_at', '=', Carbon::parse($date->created_at)->format('Y-m-d'))
-            ->when(!empty($request->input('series')), function ($q) use ($request) {
-                $q->whereIn('series.id', $request->input('series'));
-            })
-            ->when(!empty($request->input('actors')), function ($q) use ($request) {
-                $q->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id');
-                $q->whereIn('episode_actor_pivot.actor_id', $request->input('actors'));
-            })
-            ->when(!empty($request->input('languages')), function ($q) use ($request) {
-                $q->whereIn('episodes.language_id', $request->input('languages'));
-            })
-            ->groupBy('series.id')
-            ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->get();
+        if (!empty($request->input('views')))
+        {
+            $stats = $stats->filter(function ($data) use ($request) {
+                return $data->created_at <= $request->input('date');
+            });
+        }
 
         $data = new Collection();
 
-        $endData->each(function ($row) use (&$data, $startData) {
-            if (!is_null($startData->firstWhere('id', '=', $row->id)))
-            {
-                $data->push([ 'series' => $row->series, 'views' => $row->views - $startData->firstWhere('id', '=', $row->id)->views ]);
-            }
+        $stats->each(function ($row, $series) use (&$data) {
 
+            $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
 
         });
+
         $data = $data->sortByDesc('views')->take(10);
+
 
         $totalViews = 0;
         foreach ( $data as $single )
         {
+
             $totalViews += $single['views'];
         }
 
