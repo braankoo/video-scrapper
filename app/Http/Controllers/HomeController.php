@@ -168,7 +168,7 @@ class HomeController extends Controller {
 
         });
 
-        $data = $data->sortByDesc('views')->take(10);
+        $data = $data->sortByDesc('views')->take(10)->values();
 
 
         $totalViews = 0;
