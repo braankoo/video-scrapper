@@ -154,7 +154,7 @@ class HomeController extends Controller {
         if (!empty($request->input('date')))
         {
             $stats = $stats->filter(function ($data) use ($request) {
-                return $data->created_at <= $request->input('date');
+                return $data->created_at >= $request->input('date');
             });
         }
 
