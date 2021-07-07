@@ -188,15 +188,12 @@ class HomeController extends Controller {
      */
     public function topEpisodes(Request $request): JsonResponse
     {
-        $data = DB::table('stats')
-            ->selectRaw('episodes.name as episode, SUM(views) as views')
+        $stats = DB::table('stats')
+            ->selectRaw('episodes.name as episode, SUM(views) as views,date(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->when(!empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '>=', $request->input('date'));
-            })
-            ->when(empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
@@ -208,17 +205,38 @@ class HomeController extends Controller {
             ->when(!empty($request->input('languages')), function ($q) use ($request) {
                 $q->whereIn('episodes.language_id', $request->input('languages'));
             })
-            ->groupBy('episodes.id')
+            ->groupBy([ 'episodes.id', DB::raw('DATE(stats.created_at)') ])
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->take(10)
             ->get();
 
-        $totalViews = 0;
 
+        if (!empty($request->input('date')))
+        {
+            $stats = $stats->filter(function ($data) use ($request) {
+                return $data->created_at >= $request->input('date');
+            });
+        }
+
+        $stats = $stats->groupBy([ 'episode', 'created_at' ]);
+
+        $data = new Collection();
+
+        $stats->each(function ($row, $series) use (&$data) {
+
+            $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+
+        });
+
+        $data = $data->sortByDesc('views')->take(10)->values();
+
+
+        $totalViews = 0;
         foreach ( $data as $single )
         {
-            $totalViews += $single->views;
+
+            $totalViews += $single['views'];
         }
+
 
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
     }
@@ -226,22 +244,19 @@ class HomeController extends Controller {
 
     /**
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function topActors(Request $request): \Illuminate\Support\Collection
+    public function topActors(Request $request): JsonResponse
     {
 
-        return DB::table('stats')
-            ->selectRaw('actors.name,SUM(views) as views')
+        $stats = DB::table('stats')
+            ->selectRaw('actors.name,SUM(views) as views, DATE(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id')
             ->join('actors', 'episode_actor_pivot.actor_id', '=', 'actors.id')
             ->when(!empty($request->input('date')), function ($q) use ($request) {
                 $q->whereDate('stats.created_at', '>=', $request->input('date'));
-            })
-            ->when(empty($request->input('date')), function ($q) use ($request) {
-//                $q->whereDate('stats.created_at', '=', Carbon::now());
             })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
@@ -253,8 +268,37 @@ class HomeController extends Controller {
                 $q->whereIn('episodes.language_id', $request->input('languages'));
             })
             ->where('actors.gender', '=', $request->input('gender'))
-            ->groupBy('actors.id')
+            ->groupBy([ 'actors.id', DB::raw('DATE(stats.created_at)') ])
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->take(10)->get();
+            ->get();
+
+        if (!empty($request->input('date')))
+        {
+            $stats = $stats->filter(function ($data) use ($request) {
+                return $data->created_at >= $request->input('date');
+            });
+        }
+
+        $stats = $stats->groupBy([ 'name', 'created_at' ]);
+
+        $data = new Collection();
+
+        $stats->each(function ($row, $series) use (&$data) {
+
+            $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+
+        });
+
+        $data = $data->sortByDesc('views')->take(10)->values();
+
+
+        $totalViews = 0;
+        foreach ( $data as $single )
+        {
+
+            $totalViews += $single['views'];
+        }
+
+        return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
     }
 }
