@@ -148,15 +148,17 @@ class HomeController extends Controller {
             })
             ->groupBy([ 'series.id', DB::raw('DATE(stats.created_at)') ])
             ->orderBy(DB::raw('sum(views)'), 'DESC')
-            ->get()->groupBy([ 'series', 'created_at' ]);
+            ->get();
 
 
-        if (!empty($request->input('views')))
+        if (!empty($request->input('date')))
         {
             $stats = $stats->filter(function ($data) use ($request) {
                 return $data->created_at <= $request->input('date');
             });
         }
+
+        $stats = $stats->groupBy([ 'series', 'created_at' ]);
 
         $data = new Collection();
 
