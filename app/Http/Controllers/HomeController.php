@@ -165,9 +165,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-
+                if (!is_null($row))
+                {
+                    $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+                }
             });
         } else
         {
@@ -180,8 +181,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views ]);
+                if (!is_null($row))
+                {
+                    $data->push([ 'series' => $series, 'views' => $row->first()[0]->views ]);
+                }
 
             });
         }
@@ -244,9 +247,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-
+                if (!is_null($row))
+                {
+                    $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+                }
             });
         } else
         {
@@ -259,9 +263,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views ]);
-
+                if (!is_null($row))
+                {
+                    $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views ]);
+                }
             });
         }
 
@@ -320,9 +325,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-
+                if (!is_null($row))
+                {
+                    $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+                }
             });
         } else
         {
@@ -335,9 +341,10 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-
-                $data->push([ 'name' => $series, 'views' => $row->first()[0]->views ]);
-
+                if (!is_null($row))
+                {
+                    $data->push([ 'name' => $series, 'views' => $row->first()[0]->views ]);
+                }
             });
         }
 
