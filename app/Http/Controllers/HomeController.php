@@ -263,7 +263,7 @@ class HomeController extends Controller {
             });
 
             $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
+                if (!is_null($row->first()))
                 {
                     $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views ]);
                 }
