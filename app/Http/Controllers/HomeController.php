@@ -182,7 +182,7 @@ class HomeController extends Controller {
 
             $stats->each(function ($row, $series) use (&$data) {
 
-                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views ]);
 
             });
         }
