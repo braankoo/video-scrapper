@@ -124,7 +124,6 @@ class HomeController extends Controller {
         return $transformedData;
     }
 
-
     /**
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -230,37 +229,52 @@ class HomeController extends Controller {
             ->get();
 
 
-        if (!empty($request->input('date')))
-        {
-            $stats = $stats->filter(function ($data) use ($request) {
-                return $data->created_at >= $request->input('date');
-            });
-        }
-
         $stats = $stats->groupBy([ 'episode', 'created_at' ]);
 
         $data = new Collection();
 
-        $stats->each(function ($row, $series) use (&$data) {
 
-            $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+        if (!empty($request->input('date')))
+        {
 
-        });
+            $stats = $stats->map(function ($data) use ($request) {
+                return $data->filter(function ($row, $date) use ($request) {
+                    return $date >= $request->input('date');
+                });
+            });
+
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+
+            });
+        } else
+        {
+            $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+
+            $stats = $stats->map(function ($data) use ($last) {
+                return $data->filter(function ($row, $date) use ($last) {
+                    return $date == $last->created_at;
+                });
+            });
+
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views ]);
+
+            });
+        }
 
         $data = $data->sortByDesc('views')->take(10)->values();
-
 
         $totalViews = 0;
         foreach ( $data as $single )
         {
-
             $totalViews += $single['views'];
         }
 
-
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
     }
-
 
     /**
      * @param \Illuminate\Http\Request $request
@@ -292,22 +306,41 @@ class HomeController extends Controller {
             ->orderBy(DB::raw('sum(views)'), 'DESC')
             ->get();
 
-        if (!empty($request->input('date')))
-        {
-            $stats = $stats->filter(function ($data) use ($request) {
-                return $data->created_at >= $request->input('date');
-            });
-        }
-
         $stats = $stats->groupBy([ 'name', 'created_at' ]);
 
         $data = new Collection();
 
-        $stats->each(function ($row, $series) use (&$data) {
+        if (!empty($request->input('date')))
+        {
 
-            $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+            $stats = $stats->map(function ($data) use ($request) {
+                return $data->filter(function ($row, $date) use ($request) {
+                    return $date >= $request->input('date');
+                });
+            });
 
-        });
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+
+            });
+        } else
+        {
+            $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+
+            $stats = $stats->map(function ($data) use ($last) {
+                return $data->filter(function ($row, $date) use ($last) {
+                    return $date == $last->created_at;
+                });
+            });
+
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'name' => $series, 'views' => $row->first()[0]->views ]);
+
+            });
+        }
+
 
         $data = $data->sortByDesc('views')->take(10)->values();
 
