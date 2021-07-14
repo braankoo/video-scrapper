@@ -169,7 +169,7 @@ class HomeController extends Controller {
             });
         } else
         {
-            $last = DB::table('stats')->orderByDesc('created_at')->first();
+            $last = DB::table('stats')->select([ 'created_at' ])->latest('created_at')->first();
             $stats = $stats->filter(function ($data) use ($request, $last) {
                 return $data->created_at == $last->created_at;
             });
