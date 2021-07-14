@@ -131,7 +131,7 @@ class HomeController extends Controller {
     public function topSeries(Request $request): JsonResponse
     {
         $stats = DB::table('stats')
-            ->selectRaw('series.id,series.name as series, SUM(views) as views, date(stats.created_at) as created_at')
+            ->selectRaw('series.name as name, SUM(views) as views, date(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('series', 'episodes.series_id', '=', 'series.id')
@@ -150,59 +150,34 @@ class HomeController extends Controller {
             ->get();
 
 
-        $stats = $stats->groupBy([ 'series', 'created_at' ]);
-
-        $data = new Collection();
-
-
         if (!empty($request->input('date')))
         {
-
-            $stats = $stats->map(function ($data) use ($request) {
-                return $data->filter(function ($row, $date) use ($request) {
-                    return $date >= $request->input('date');
-                });
+            $stats = $stats->filter(function ($row) use ($request) {
+                return $row->created_at >= $request->input('date');
             });
 
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
-                {
-                    $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-                }
-            });
+            $stats = $stats->groupBy('series');
+
+            $stats = $this->transformForFront($stats);
         } else
         {
-            $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+            $stats = $this->transformForFrontWithoutDate($stats);
 
-            $stats = $stats->map(function ($data) use ($last) {
-                return $data->filter(function ($row, $date) use ($last) {
-                    return $date == $last->created_at;
-                });
-            });
-
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
-                {
-                    $data->push([ 'series' => $series, 'views' => $row->first()[0]->views ]);
-                }
-
-            });
         }
 
 
-        $data = $data->sortByDesc('views')->take(10)->values();
-
+        $data = $stats->sortByDesc('views')->take(10)->values();
 
         $totalViews = 0;
         foreach ( $data as $single )
         {
-
-            $totalViews += $single['views'];
+            $totalViews += $single->views;
         }
 
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
 
     }
+
 
     /**
      * @param \Illuminate\Http\Request $request
@@ -211,12 +186,9 @@ class HomeController extends Controller {
     public function topEpisodes(Request $request): JsonResponse
     {
         $stats = DB::table('stats')
-            ->selectRaw('episodes.name as episode, SUM(views) as views,date(stats.created_at) as created_at')
+            ->selectRaw('episodes.name as name, SUM(views) as views,date(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
-            ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('date'));
-            })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
             })
@@ -232,50 +204,28 @@ class HomeController extends Controller {
             ->get();
 
 
-        $stats = $stats->groupBy([ 'episode', 'created_at' ]);
-
-        $data = new Collection();
-
-
         if (!empty($request->input('date')))
         {
-
-            $stats = $stats->map(function ($data) use ($request) {
-                return $data->filter(function ($row, $date) use ($request) {
-                    return $date >= $request->input('date');
-                });
+            $stats = $stats->filter(function ($row) use ($request) {
+                return $row->created_at >= $request->input('date');
             });
+            $stats = $stats->groupBy('name');
 
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
-                {
-                    $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-                }
-            });
+            $stats = $this->transformForFront($stats);
+
         } else
         {
-            $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
 
-            $stats = $stats->map(function ($data) use ($last) {
-                return $data->filter(function ($row, $date) use ($last) {
-                    return $date == $last->created_at;
-                });
-            });
+            $stats = $this->transformForFrontWithoutDate($stats);
 
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row->first()))
-                {
-                    $data->push([ 'episode' => $series, 'views' => $row->first()[0]->views ]);
-                }
-            });
         }
 
-        $data = $data->sortByDesc('views')->take(10)->values();
+        $data = $stats->sortByDesc('views')->take(10)->values();
 
         $totalViews = 0;
         foreach ( $data as $single )
         {
-            $totalViews += $single['views'];
+            $totalViews += $single->views;
         }
 
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
@@ -289,14 +239,11 @@ class HomeController extends Controller {
     {
 
         $stats = DB::table('stats')
-            ->selectRaw('actors.name,SUM(views) as views, DATE(stats.created_at) as created_at')
+            ->selectRaw('actors.name as name,SUM(views) as views, DATE(stats.created_at) as created_at')
             ->join('videos', 'videos.id', 'stats.video_id')
             ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('episode_actor_pivot', 'episodes.id', '=', 'episode_actor_pivot.episode_id')
             ->join('actors', 'episode_actor_pivot.actor_id', '=', 'actors.id')
-            ->when(!empty($request->input('date')), function ($q) use ($request) {
-                $q->whereDate('stats.created_at', '>=', $request->input('date'));
-            })
             ->when(!empty($request->input('series')), function ($q) use ($request) {
                 $q->whereIn('episodes.series_id', $request->input('series'));
             })
@@ -311,54 +258,78 @@ class HomeController extends Controller {
             ->orderBy(DB::raw('sum(views)'), 'DESC')
             ->get();
 
-        $stats = $stats->groupBy([ 'name', 'created_at' ]);
-
-        $data = new Collection();
 
         if (!empty($request->input('date')))
         {
-
-            $stats = $stats->map(function ($data) use ($request) {
-                return $data->filter(function ($row, $date) use ($request) {
-                    return $date >= $request->input('date');
-                });
+            $stats = $stats->filter(function ($row) use ($request) {
+                return $row->created_at >= $request->input('date');
             });
+            $stats = $stats->groupBy('name');
 
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
-                {
-                    $data->push([ 'name' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-                }
-            });
+            $stats = $this->transformForFront($stats);
+
         } else
         {
-            $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+            $stats = $this->transformForFrontWithoutDate($stats);
 
-            $stats = $stats->map(function ($data) use ($last) {
-                return $data->filter(function ($row, $date) use ($last) {
-                    return $date == $last->created_at;
-                });
-            });
-
-            $stats->each(function ($row, $series) use (&$data) {
-                if (!is_null($row))
-                {
-                    $data->push([ 'name' => $series, 'views' => $row->first()[0]->views ]);
-                }
-            });
         }
 
-
-        $data = $data->sortByDesc('views')->take(10)->values();
-
+        $data = $stats->sortByDesc('views')->take(10)->values();
 
         $totalViews = 0;
         foreach ( $data as $single )
         {
-
-            $totalViews += $single['views'];
+            $totalViews += $single->views;
         }
 
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $stats
+     * @return \Illuminate\Support\Collection
+     */
+    private function transformForFront(Collection $stats): Collection
+    {
+
+        $stats = $stats->transform(function ($single, $name) {
+            $obj = new \stdClass();
+            if ($single->count() > 1)
+            {
+                $obj->name = $name;
+                $obj->views = $single->first()->views - $single->last()->views;
+
+            } else
+            {
+                $obj->name = $name;
+                $obj->views = $single->first()->views;
+
+            }
+
+            return $obj;
+        })->values();
+
+        return $stats;
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $stats
+     * @return \Illuminate\Support\Collection
+     */
+    private function transformForFrontWithoutDate(Collection $stats): Collection
+    {
+        $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+
+        $stats = $stats->filter(function ($row) use ($last) {
+            return $row->created_at == $last->created_at;
+        })->transform(function ($single, $name) {
+            $obj = new \stdClass();
+            $obj->name = $single->name;
+            $obj->views = $single->views;
+
+            return $obj;
+        });
+
+        return $stats;
     }
 }

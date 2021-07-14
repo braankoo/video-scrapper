@@ -129,7 +129,7 @@ class StatsController extends Controller {
                 'total'  => $total
             ],
             $pagination->total(),
-            $pagination->perPage(),
+            20,
             $pagination->currentPage(),
             [ 'path'  => \Request::url(),
               'query' => [ 'page' => $pagination->currentPage() ]

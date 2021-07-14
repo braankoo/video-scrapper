@@ -134,7 +134,6 @@
                 :bordered="true"
                 :outlined="true"
                 :show-empty="true"
-
             >
                 <template #cell(views)="data">
                     {{ formatter().format(data.item.views) }}
@@ -142,41 +141,41 @@
             </b-table>
         </b-card>
         <hr>
-        <b-card header="Top 10 Female Actors">
-            <b-row>
-                <b-col cols="3">
-                    <series @selected-series="top.actors.female.series = $event"/>
-                </b-col>
-                <b-col cols="3">
-                    <actors @selected-actors="top.actors.female.actors = $event"/>
-                </b-col>
-                <b-col cols="2">
-                    <languages @selected-languages="top.actors.female.languages = $event"/>
-                </b-col>
-                <b-col cols="4">
-                    <b-form-datepicker id="female-actor-start-date"
-                                       placeholder="Start Date"
-                                       v-model="top.actors.female.date"
-                                       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
-                </b-col>
-            </b-row>
-            <hr>
-            <b-table
-                api-url="/api/actors/top10"
-                :items="getActorsData"
-                :filter="{gender: 'FEMALE',date: top.actors.female.date,series:top.actors.female.series, actors:top.actors.female.actors, languages:top.actors.female.languages}"
-                table-variant="light"
-                head-variant="light"
-                :striped="true"
-                :bordered="true"
-                :outlined="true"
-                :show-empty="true"
-            >
-                <template #cell(views)="data">
-                    {{ formatter().format(data.item.views) }}
-                </template>
-            </b-table>
-        </b-card>
+                <b-card header="Top 10 Female Actors">
+                    <b-row>
+                        <b-col cols="3">
+                            <series @selected-series="top.actors.female.series = $event"/>
+                        </b-col>
+                        <b-col cols="3">
+                            <actors @selected-actors="top.actors.female.actors = $event"/>
+                        </b-col>
+                        <b-col cols="2">
+                            <languages @selected-languages="top.actors.female.languages = $event"/>
+                        </b-col>
+                        <b-col cols="4">
+                            <b-form-datepicker id="female-actor-start-date"
+                                               placeholder="Start Date"
+                                               v-model="top.actors.female.date"
+                                               :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"></b-form-datepicker>
+                        </b-col>
+                    </b-row>
+                    <hr>
+                    <b-table
+                        api-url="/api/actors/top10"
+                        :items="getActorsData"
+                        :filter="{gender: 'FEMALE',date: top.actors.female.date,series:top.actors.female.series, actors:top.actors.female.actors, languages:top.actors.female.languages}"
+                        table-variant="light"
+                        head-variant="light"
+                        :striped="true"
+                        :bordered="true"
+                        :outlined="true"
+                        :show-empty="true"
+                    >
+                        <template #cell(views)="data">
+                            {{ formatter().format(data.item.views) }}
+                        </template>
+                    </b-table>
+                </b-card>
         <hr>
     </div>
 </template>
@@ -359,7 +358,9 @@ export default {
                         languages: ctx.filter.languages
                     }
                 });
-                return response.data;
+
+                // this.top.actors[ctx.filter.gender].total = response.data.total;
+                return response.data.data;
             } catch (error) {
                 return []
             }
