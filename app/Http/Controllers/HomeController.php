@@ -158,8 +158,11 @@ class HomeController extends Controller {
 
         if (!empty($request->input('date')))
         {
-            $stats = $stats->filter(function ($data) use ($request) {
-                return $data->created_at >= $request->input('date');
+
+            $stats = $stats->map(function ($data) use ($request) {
+                return $data->filter(function ($row, $date) use ($request) {
+                    return $date >= $request->input('date');
+                });
             });
 
             $stats->each(function ($row, $series) use (&$data) {
@@ -170,13 +173,16 @@ class HomeController extends Controller {
         } else
         {
             $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
-            $stats = $stats->filter(function ($data) use ($request, $last) {
-                return $data->created_at == $last->created_at;
+
+            $stats = $stats->map(function ($data) use ($last) {
+                return $data->filter(function ($row, $date) use ($last) {
+                    return $date == $last->created_at;
+                });
             });
 
             $stats->each(function ($row, $series) use (&$data) {
 
-                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views ]);
+                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
 
             });
         }
