@@ -151,22 +151,37 @@ class HomeController extends Controller {
             ->get();
 
 
+        $stats = $stats->groupBy([ 'series', 'created_at' ]);
+
+        $data = new Collection();
+
+
         if (!empty($request->input('date')))
         {
             $stats = $stats->filter(function ($data) use ($request) {
                 return $data->created_at >= $request->input('date');
             });
+
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
+
+            });
+        } else
+        {
+            $last = DB::table('stats')->orderByDesc('created_at')->first();
+            $stats = $stats->filter(function ($data) use ($request, $last) {
+                return $data->created_at == $last->created_at;
+            });
+
+            $stats->each(function ($row, $series) use (&$data) {
+
+                $data->push([ 'series' => $series, 'views' => $row->views ]);
+
+            });
+
         }
 
-        $stats = $stats->groupBy([ 'series', 'created_at' ]);
-
-        $data = new Collection();
-
-        $stats->each(function ($row, $series) use (&$data) {
-
-            $data->push([ 'series' => $series, 'views' => $row->first()[0]->views - $row->last()[0]->views ]);
-
-        });
 
         $data = $data->sortByDesc('views')->take(10)->values();
 
