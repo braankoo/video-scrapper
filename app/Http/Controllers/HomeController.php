@@ -150,31 +150,7 @@ class HomeController extends Controller {
             ->get();
 
 
-        if (!empty($request->input('date')))
-        {
-            $stats = $stats->filter(function ($row) use ($request) {
-                return $row->created_at >= $request->input('date');
-            });
-
-            $stats = $stats->groupBy('series');
-
-            $stats = $this->transformForFront($stats);
-        } else
-        {
-            $stats = $this->transformForFrontWithoutDate($stats);
-
-        }
-
-
-        $data = $stats->sortByDesc('views')->take(10)->values();
-
-        $totalViews = 0;
-        foreach ( $data as $single )
-        {
-            $totalViews += $single->views;
-        }
-
-        return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
+        return $this->groupByNameAndChechDate($request, $stats);
 
     }
 
@@ -204,31 +180,7 @@ class HomeController extends Controller {
             ->get();
 
 
-        if (!empty($request->input('date')))
-        {
-            $stats = $stats->filter(function ($row) use ($request) {
-                return $row->created_at >= $request->input('date');
-            });
-            $stats = $stats->groupBy('name');
-
-            $stats = $this->transformForFront($stats);
-
-        } else
-        {
-
-            $stats = $this->transformForFrontWithoutDate($stats);
-
-        }
-
-        $data = $stats->sortByDesc('views')->take(10)->values();
-
-        $totalViews = 0;
-        foreach ( $data as $single )
-        {
-            $totalViews += $single->views;
-        }
-
-        return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
+        return $this->groupByNameAndChechDate($request, $stats);
     }
 
     /**
@@ -259,6 +211,64 @@ class HomeController extends Controller {
             ->get();
 
 
+        return $this->groupByNameAndChechDate($request, $stats);
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $stats
+     * @return \Illuminate\Support\Collection
+     */
+    private function transformForFront(Collection $stats): Collection
+    {
+
+        return $stats->transform(function ($single, $name) {
+            $obj = new \stdClass();
+            if ($single->count() > 1)
+            {
+
+                $obj->name = $name;
+                $obj->views = $single->first()->views - $single->last()->views;
+
+            } else
+            {
+                $obj->name = $name;
+                $obj->views = $single->first()->views;
+
+            }
+
+            return $obj;
+        })->values();
+
+
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $stats
+     * @return \Illuminate\Support\Collection
+     */
+    private function transformForFrontWithoutDate(Collection $stats): Collection
+    {
+        $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
+
+        return $stats->filter(function ($row) use ($last) {
+            return $row->created_at == $last->created_at;
+        })->transform(function ($single, $name) {
+            $obj = new \stdClass();
+            $obj->name = $single->name;
+            $obj->views = $single->views;
+
+            return $obj;
+        });
+
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Support\Collection $stats
+     * @return \Illuminate\Http\JsonResponse
+     */
+    private function groupByNameAndChechDate(Request $request, Collection $stats): JsonResponse
+    {
         if (!empty($request->input('date')))
         {
             $stats = $stats->filter(function ($row) use ($request) {
@@ -283,53 +293,5 @@ class HomeController extends Controller {
         }
 
         return response()->json([ 'data' => $data, 'total' => $totalViews ], JsonResponse::HTTP_OK);
-    }
-
-    /**
-     * @param \Illuminate\Support\Collection $stats
-     * @return \Illuminate\Support\Collection
-     */
-    private function transformForFront(Collection $stats): Collection
-    {
-
-        $stats = $stats->transform(function ($single, $name) {
-            $obj = new \stdClass();
-            if ($single->count() > 1)
-            {
-                $obj->name = $name;
-                $obj->views = $single->first()->views - $single->last()->views;
-
-            } else
-            {
-                $obj->name = $name;
-                $obj->views = $single->first()->views;
-
-            }
-
-            return $obj;
-        })->values();
-
-        return $stats;
-    }
-
-    /**
-     * @param \Illuminate\Support\Collection $stats
-     * @return \Illuminate\Support\Collection
-     */
-    private function transformForFrontWithoutDate(Collection $stats): Collection
-    {
-        $last = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->latest(DB::raw('DATE(created_at)'))->first();
-
-        $stats = $stats->filter(function ($row) use ($last) {
-            return $row->created_at == $last->created_at;
-        })->transform(function ($single, $name) {
-            $obj = new \stdClass();
-            $obj->name = $single->name;
-            $obj->views = $single->views;
-
-            return $obj;
-        });
-
-        return $stats;
     }
 }
