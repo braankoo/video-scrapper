@@ -38,11 +38,11 @@ class SeriesController extends Controller {
     }
 
     /**
-     * @param \App\Models\Series $series
+     * @param $series
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function stats(Series $series, Request $request): JsonResponse
+    public function stats($series, Request $request): JsonResponse
     {
 
         $filters = json_decode($request->input('filter'));
@@ -55,32 +55,26 @@ class SeriesController extends Controller {
         }
         $subQuery->groupBy('episode_id');
 
-        $query = $series->episodes()->select(
-            [ 'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
+        $query = DB::table('stats')
+            ->select([ 'episodes.name as name', 'episodes.id as id', 'actors', 'languages.name as languages.name', DB::raw('SUM(views) as views') ])
+            ->join('videos', 'stats.video_id', '=', 'videos.id')
+            ->join('episodes', 'videos.episode_id', '=', 'episodes.id')
             ->join('languages', 'episodes.language_id', '=', 'languages.id')
             ->joinSub(
                 $subQuery,
                 'actors', function ($join) {
                 $join->on('episodes.id', '=', 'actors.episode_id');
             })
-            ->leftJoin('videos', 'episodes.id', '=', 'videos.episode_id')
-            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
-
+            ->where('episodes.series_id', '=', $series);
 
         $query = $this->languageFilter($query, $filters->languages);
 
-        if (!empty($filters->date->end_date))
-        {
-            $query->whereDate('stats.created_at', '=', $filters->date->end_date);
-        } else
-        {
-            $query->whereDate('stats.created_at', '=', $filters->date->start_date);
-        }
+        $query = $this->dateRangeFilter($query, $filters->date);
 
         return response()->json(
             $query->groupBy('episodes.id')
                 ->orderBy((!empty($request->input('sortBy')) ? $request->input('sortBy') : 'episodes.id'), ($request->input('sortDesc') == 'true' ? 'asc' : 'desc'))
-                ->paginate('20', [ '*' ], 'page', $request->input('page'))
+                ->paginate(50, [ '*' ], 'page', $request->input('page'))
 
             , JsonResponse::HTTP_OK);
     }

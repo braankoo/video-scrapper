@@ -105,9 +105,23 @@ class StatsController extends Controller {
             }
         }
 
-        $total = $itemsTransformed->groupBy([ 'date' ])->map(function ($url) {
-            return $url->sum('views');
+
+        $totalQuery = DB::table('stats')
+            ->selectRaw("IFNULL(SUM(views),0) as views, DATE_FORMAT(stats.created_at,'%Y-%m-%d') as date")
+            ->join('videos', 'stats.video_id', '=', 'videos.id');
+
+        if (!empty($filters->date->start_date))
+        {
+            $totalQuery->whereDate('stats.created_at', '>=', $filters->date->start_date);
+        }
+        if (!empty($filters->date->end_date))
+        {
+            $totalQuery->whereDate('stats.created_at', '<=', $filters->date->end_date);
+        }
+        $total = $totalQuery->groupBy([ 'date' ])->get()->groupBy([ 'date' ])->map(function ($item) {
+            return $item->first()->views;
         });
+
 
 
         $itemsTransformed = $itemsTransformed->groupBy([ 'series' ])->map(function ($series) {
@@ -129,7 +143,7 @@ class StatsController extends Controller {
                 'total'  => $total
             ],
             $pagination->total(),
-            20,
+            50,
             $pagination->currentPage(),
             [ 'path'  => \Request::url(),
               'query' => [ 'page' => $pagination->currentPage() ]

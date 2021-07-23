@@ -47,7 +47,7 @@ export default {
         return {
             currentPage: 1,
             totalRows: 1,
-            perPage: 20,
+            perPage: 50,
             isBusy: false,
             fields: [
                 {

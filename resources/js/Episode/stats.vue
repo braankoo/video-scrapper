@@ -81,16 +81,18 @@ export default {
                 languages: [],
                 date: {}
             },
-            fields: [{
-                key: 'episodes.name',
-                label: 'name',
-                sortable: true
-            },
+            fields: [
                 {
                     key: 'series.name',
                     label: 'Series',
                     sortable: true
                 },
+                {
+                    key: 'episodes.name',
+                    label: 'Name',
+                    sortable: true
+                },
+
                 {
                     key: 'languages.name',
                     label: 'Language',

@@ -17,9 +17,9 @@ class CountriesController extends Controller {
     {
         if ($request->has('search'))
         {
-            return response()->json(Country::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(10, [ '*' ]));
+            return response()->json(Country::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(50, [ '*' ]));
         }
 
-        return response()->json(Country::paginate(10, [ 'id', 'name' ], 'page', $request->input('page')), 200);
+        return response()->json(Country::paginate(50, [ 'id', 'name' ], 'page', $request->input('page')), 200);
     }
 }

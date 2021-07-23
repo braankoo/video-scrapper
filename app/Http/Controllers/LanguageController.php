@@ -17,10 +17,10 @@ class LanguageController extends Controller {
     {
         if ($request->has('search'))
         {
-            return response()->json(Language::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(10, [ '*' ]));
+            return response()->json(Language::whereRaw('name LIKE ?', [ '%' . $request->input('search') . '%' ])->simplePaginate(50, [ '*' ]));
         }
 
-        return response()->json(Language::paginate(10, [ 'id', 'name' ], 'page', $request->input('page')), JsonResponse::HTTP_OK);
+        return response()->json(Language::paginate(50, [ 'id', 'name' ], 'page', $request->input('page')), JsonResponse::HTTP_OK);
     }
 
     /**
