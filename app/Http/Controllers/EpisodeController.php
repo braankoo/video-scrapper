@@ -64,24 +64,26 @@ class EpisodeController extends Controller {
 
     /**
      * @param \App\Models\Series $series
-     * @param \App\Models\Episode $episode
+     * @param int $episode
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function singleStats(Series $series, Episode $episode, Request $request): JsonResponse
+    public function singleStats(Series $series, int $episode, Request $request): JsonResponse
     {
+
         $filters = json_decode($request->input('filter'));
-
-        $query = $episode->videos()->select(
-            [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
-            ->leftJoin('stats', 'videos.id', '=', 'stats.video_id');
-
+        $query = DB::table('stats')
+            ->select(
+                [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
+            ->join('videos','stats.video_id','=','videos.id')
+            ->where('videos.episode_id','=', $episode);
+        if (!empty($filters->date->start_date))
+        {
+            $query->whereDate('stats.created_at', '>=', $filters->date->start_date);
+        }
         if (!empty($filters->date->end_date))
         {
-            $query->whereDate('stats.created_at', '=', $filters->date->end_date);
-        } else
-        {
-            $query->whereDate('stats.created_at', '=', $filters->date->start_date);
+            $query->whereDate('stats.created_at', '<=', $filters->date->end_date);
         }
 
         return response()->json(
