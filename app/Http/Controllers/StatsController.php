@@ -30,6 +30,19 @@ class StatsController extends Controller {
             $format = '%Y-%m';
         }
 
+        if (empty($filters->date->start_date))
+        {
+            $firstDate = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->orderBy('stats.created_at', 'ASC')->limit(1)->first();
+            $filters->date->start_date = $firstDate->created_at;
+        }
+
+        if (empty($filters->date->end_date))
+        {
+            $firstDate = DB::table('stats')->selectRaw('DATE(created_at) as created_at')->orderBy('stats.created_at', 'DESC')->limit(1)->first();
+            $filters->date->end_date = $firstDate->created_at;
+        }
+
+
         $period = CarbonPeriod::create($filters->date->start_date, $filters->date->end_date);
 
         $dates = [];
@@ -37,6 +50,7 @@ class StatsController extends Controller {
         {
             $dates[] = $date->format('Y-m-d');
         }
+
         $dates = (array_values(array_unique($dates)));
 
 
@@ -121,7 +135,6 @@ class StatsController extends Controller {
         $total = $totalQuery->groupBy([ 'date' ])->get()->groupBy([ 'date' ])->map(function ($item) {
             return $item->first()->views;
         });
-
 
 
         $itemsTransformed = $itemsTransformed->groupBy([ 'series' ])->map(function ($series) {

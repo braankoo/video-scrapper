@@ -38,6 +38,12 @@ export default {
                 this.$emit('selected-date', val);
             }
         }
+    },
+    methods: {
+        setDates(startDate,endDate){
+            this.date.start_date = startDate;
+            this.date.end_date = endDate;
+        }
     }
 }
 </script>

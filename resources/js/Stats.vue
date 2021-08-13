@@ -11,7 +11,7 @@
                 <languages @selected-languages="filters.languages = $event"/>
             </b-col>
             <b-col cols="4">
-                <date @selected-date="filters.date = $event"/>
+                <date @selected-date="setDate($event)" ref="dateSelector"/>
             </b-col>
         </b-row>
         <b-row class="mb-3">
@@ -154,7 +154,8 @@ export default {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 2,
                 });
-            }
+            },
+            firstDateSet: true
         }
     },
     methods: {
@@ -283,11 +284,23 @@ export default {
             }).then((response) => {
                 fileDownload(response.data, 'stats.csv');
             });
+        },
+        setDate(dates) {
+            if (this.firstDateSet) {
+                this.filters.date.start_date = '';
+                this.filters.date.end_date = '';
+                this.firstDateSet = false;
+
+            } else {
+                this.filters.date = dates;
+
+            }
         }
     },
     mounted() {
-
+        this.$refs['dateSelector'].setDates('', '');
     }
+
 }
 </script>
 

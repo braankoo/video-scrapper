@@ -50,7 +50,15 @@ export default {
             isBusy: false,
             fields: [
                 {
+                    key: 'series.name',
+                    label: 'series'
+                },
+                {
                     key: 'name'
+                },
+                {
+                    key: 'language.name',
+                    label: 'language'
                 }
             ]
         }

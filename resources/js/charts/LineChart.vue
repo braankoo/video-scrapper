@@ -15,6 +15,9 @@ export default {
                     scales: {
                         yAxes: [{
                             ticks: {
+                                callback: function (value, index, values) {
+                                    return value.toLocaleString();
+                                },
                                 beginAtZero: true
                             },
                             gridLines: {

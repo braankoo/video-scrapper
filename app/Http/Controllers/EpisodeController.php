@@ -75,8 +75,8 @@ class EpisodeController extends Controller {
         $query = DB::table('stats')
             ->select(
                 [ 'videos.url as url', 'videos.id as id', DB::raw('SUM(views) as views') ])
-            ->join('videos','stats.video_id','=','videos.id')
-            ->where('videos.episode_id','=', $episode);
+            ->join('videos', 'stats.video_id', '=', 'videos.id')
+            ->where('videos.episode_id', '=', $episode);
         if (!empty($filters->date->start_date))
         {
             $query->whereDate('stats.created_at', '>=', $filters->date->start_date);
@@ -100,7 +100,7 @@ class EpisodeController extends Controller {
      */
     public function index(Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return Episode::paginate(50, [ 'id', 'name' ]);
+        return Episode::with([ 'series:id,name', 'language:id,name' ])->paginate(50);
     }
 
     /**

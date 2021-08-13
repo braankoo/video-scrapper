@@ -71,11 +71,12 @@ export default {
     methods: {
         async getSeries(ctx) {
             try {
-
+                console.log(ctx);
                 const response = await this.$http.get(`${ctx.apiUrl}`, {
                     params: {
                         page: ctx.currentPage,
-                        perPage: ctx.perPage
+                        perPage: ctx.perPage,
+
                     }
                 });
                 this.totalRows = response.data.total;
