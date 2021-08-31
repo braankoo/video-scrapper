@@ -111,6 +111,7 @@ class GetViews implements ShouldQueue {
                 }
                 $data = explode('-', $data[0]->plaintext);
 
+
                 return (int) str_replace([ ' ', ',', '.' ], '', last($data));
             case 'xhamster.com':
                 $data = $html->find('div[class=header-icons] > span');
@@ -118,6 +119,7 @@ class GetViews implements ShouldQueue {
                 {
                     $this->insertNulAndMarkVideoAsIncorrect();
                 }
+
 
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             case 'pornhub.com':
@@ -129,13 +131,15 @@ class GetViews implements ShouldQueue {
                     $this->insertNulAndMarkVideoAsIncorrect();
                 }
 
+
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             case 'xvideos.com':
-                $data = $html->find('span[class=views-full] > strong[id=nb-views-number]');
+                $data = $html->find('div[id=v-views] > strong[class=mobile-hide]');
                 if (empty($data))
                 {
                     $this->insertNulAndMarkVideoAsIncorrect();
                 }
+
 
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             default:
@@ -148,6 +152,7 @@ class GetViews implements ShouldQueue {
      */
     private function insertNulAndMarkVideoAsIncorrect(): void
     {
+        dd($this->video->id);
         DB::table('stats')->insert(
             [
                 'video_id' => $this->video->id,
