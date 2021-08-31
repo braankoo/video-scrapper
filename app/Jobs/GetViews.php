@@ -40,6 +40,10 @@ class GetViews implements ShouldQueue {
      * @return void
      * @throws \Exception
      */
+
+
+    public $tries = 5;
+
     public function handle()
     {
 
@@ -135,6 +139,7 @@ class GetViews implements ShouldQueue {
                 return (int) str_replace([ ' ', ',', '.' ], '', $data[0]->plaintext);
             case 'xvideos.com':
                 $data = $html->find('div[id=v-views] > strong[class=mobile-hide]');
+
                 if (empty($data))
                 {
                     $this->insertNulAndMarkVideoAsIncorrect();
@@ -152,7 +157,7 @@ class GetViews implements ShouldQueue {
      */
     private function insertNulAndMarkVideoAsIncorrect(): void
     {
-        dd($this->video->id);
+
         DB::table('stats')->insert(
             [
                 'video_id' => $this->video->id,
