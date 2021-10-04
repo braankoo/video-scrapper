@@ -172,6 +172,7 @@ class EpisodeController extends Controller {
         $episode->name = $request->input('name');
         $episode->language_id = $request->input('language');
         $episode->actors()->sync($request->input('actors'));
+        $episode->series_id = $request->input('series');
 
         $episode->videos()->whereNotIn(
             'url',
